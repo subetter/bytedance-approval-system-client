@@ -1,0 +1,40 @@
+/* 弹窗样式 */
+.modal {
+    /* Arco Modal 会自动处理大部分样式 */
+}
+
+/* 覆盖 Arco Modal 样式 */
+:global(.arco-modal-header) {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 20px;
+}
+
+:global(.arco-modal-title) {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+:global(.arco-modal-body) {
+    padding: 20px;
+}
+
+:global(.arco-modal-footer) {
+    border-top: 1px solid #e5e7eb;
+    padding: 12px 20px;
+}
+
+/* 表单样式优化 */
+:global(.arco-form-item-label-col > label) {
+    font-weight: 500;
+    color: #374151;
+}
+
+:global(.arco-input-disabled),
+:global(.arco-textarea-disabled),
+:global(.arco-picker-disabled),
+:global(.arco-cascader-disabled) {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+}
