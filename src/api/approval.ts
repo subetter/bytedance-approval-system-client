@@ -9,5 +9,5 @@ import { ApiResponse, ApprovalFormQueryParams, PaginationResponse } from '@/type
 export function fetchApprovals(
     params: ApprovalFormQueryParams
 ): Promise<ApiResponse<PaginationResponse<ApprovalForm>>> {
-    return request.get('/approvals');
+    return request.get('/approvals', { params });
 }

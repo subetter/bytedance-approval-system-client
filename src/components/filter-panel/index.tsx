@@ -64,10 +64,16 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
             page: 1,
             pageSize: 10,
             status: values.status || undefined,
-            keyword: values.keyword || undefined,
+            projectName: values.keyword || undefined, // 搜索框字段名仍为 keyword，但映射到 projectName
             departmentId: values.department?.[values.department.length - 1] || undefined, // 取最后一级部门ID
-            startDate: values.createTimeRange?.[0] || undefined,
-            endDate: values.createTimeRange?.[1] || undefined,
+
+            // 创建时间
+            createTimeStart: values.createTimeRange?.[0] || undefined,
+            createTimeEnd: values.createTimeRange?.[1] || undefined,
+
+            // 审批时间
+            approvalTimeStart: values.approvalTimeRange?.[0] || undefined,
+            approvalTimeEnd: values.approvalTimeRange?.[1] || undefined,
         };
 
         console.log('查询参数:', queryParams);

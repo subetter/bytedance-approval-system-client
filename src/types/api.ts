@@ -30,9 +30,17 @@ export interface ApprovalFormQueryParams extends PaginationParams {
   applicantId?: number; // 按申请人筛选
   currentApproverId?: number; // 按当前审批人筛选
   departmentId?: number; // 按部门筛选
-  startDate?: string; // 执行日期范围 - 开始
-  endDate?: string; // 执行日期范围 - 结束
-  keyword?: string; // 关键词搜索（项目名称或内容）
+
+  // 创建时间范围
+  createTimeStart?: string;
+  createTimeEnd?: string;
+
+  // 审批时间范围
+  approvalTimeStart?: string;
+  approvalTimeEnd?: string;
+
+  projectName?: string; // 项目名称模糊搜索
+
   isDeleted?: boolean; // 是否查询已删除的记录
   sortBy?: 'createdAt' | 'updatedAt' | 'executeDate' | 'approvalAt'; // 排序字段
   sortOrder?: 'asc' | 'desc'; // 排序方向
