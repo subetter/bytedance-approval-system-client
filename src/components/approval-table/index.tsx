@@ -10,15 +10,17 @@ import { getDepartmentPath } from '@/utils/convert';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { UserRole } from '@/types/enum';
 import { IconCheck, IconClose } from '@arco-design/web-react/icon';
+import dayjs from 'dayjs';
 
 interface ApprovalTableProps {
     onView?: (record: ApprovalForm) => void;
     onEdit?: (record: ApprovalForm) => void;
     onApprove?: (record: ApprovalForm) => void;
     onReject?: (record: ApprovalForm) => void;
+    onWithdraw?: (record: ApprovalForm) => void;
 }
 
-export default function ApprovalTable({ onView, onEdit, onApprove, onReject }: ApprovalTableProps) {
+export default function ApprovalTable({ onView, onEdit, onApprove, onReject, onWithdraw }: ApprovalTableProps) {
     const {
         approvalList,
         loading,
@@ -97,13 +99,15 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject }: A
             title: '创建时间',
             dataIndex: 'createdAt',
             width: 180,
+            render: (createdAt?: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '--',
             sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         },
         {
             title: '审批时间',
             dataIndex: 'approvalAt',
             width: 180,
-            render: (approvalAt?: string) => approvalAt || '--',
+            // 格式化时间
+            render: (approvalAt?: string) => approvalAt ? dayjs(approvalAt).format('YYYY-MM-DD HH:mm:ss') : '--',
             sorter: (a, b) => {
                 if (!a.approvalAt) return 1;
                 if (!b.approvalAt) return -1;
@@ -113,7 +117,7 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject }: A
         {
             title: '审批项目',
             dataIndex: 'projectName',
-            width: 300,
+            width: 250,
             ellipsis: true,
             render: (projectName: string, record: ApprovalForm) => (
                 <div className={styles.projectCell}>
@@ -158,29 +162,37 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject }: A
                         </Button>
                     )}
 
+                    {/* 申请人视角：撤回按钮 (仅待审批状态可撤回) */}
+                    {currentRole === UserRole.APPLICANT && record.status === ApprovalStatus.PENDING && onWithdraw && (
+                        <Button type="text" status="danger" size="small" onClick={() => onWithdraw(record)}>
+                            撤回
+                        </Button>
+                    )}
+
                     {/* 审批人视角：通过/驳回按钮 (仅待审批状态可操作) */}
                     {currentRole === UserRole.APPROVER && record.status === ApprovalStatus.PENDING && (
-                        <>
-                            <Button
-                                type="text"
-                                status="success"
-                                size="small"
-                                icon={<IconCheck />}
-                                onClick={() => handleApprove(record)}
-                            >
-                                通过
-                            </Button>
-                            <Button
-                                type="text"
-                                status="danger"
-                                size="small"
-                                icon={<IconClose />}
-                                onClick={() => handleReject(record)}
-                            >
-                                驳回
-                            </Button>
-                        </>
+                        <Button
+                            type="text"
+                            status="success"
+                            size="small"
+                            icon={<IconCheck />}
+                            onClick={() => handleApprove(record)}
+                        >
+                            通过
+                        </Button>
                     )}
+                    {currentRole === UserRole.APPROVER && record.status === ApprovalStatus.PENDING && onReject && (
+                        <Button
+                            type="text"
+                            status="danger"
+                            size="small"
+                            icon={<IconClose />}
+                            onClick={() => handleReject(record)}
+                        >
+                            驳回
+                        </Button>
+                    )}
+
                 </Space>
             ),
         },

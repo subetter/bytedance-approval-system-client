@@ -101,7 +101,8 @@ export default function ApprovalModal({
         : values.department;
 
       // 将 DatePicker 返回的 dayjs 对象转换为字符串
-      const executeDate = values.executeDate ? values.executeDate.format('YYYY-MM-DD') : undefined;
+      const executeDate = values.executeDate;
+      console.log('executeDate: ', executeDate);
 
       if (mode === 'create') {
         const payload = {
@@ -126,7 +127,7 @@ export default function ApprovalModal({
         delete payload.department;
 
         await updateApproval(record.id, payload);
-        // messageApi?.success('审批单修改成功！'); // optional success toast
+
       }
 
       // 刷新列表

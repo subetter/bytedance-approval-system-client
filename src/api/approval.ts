@@ -44,3 +44,10 @@ export function rejectApproval(id: number, role: UserRole): Promise<ApiResponse<
         role: role
     });
 }
+
+/**
+ * 撤回审批单
+ */
+export function withdrawApproval(id: number): Promise<ApiResponse<void>> {
+    return request.post(`/approvals/${id}/withdraw`);
+}

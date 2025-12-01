@@ -10,7 +10,7 @@ import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
 import { useUserRoleStore, useApprovalStore } from '@/store';
-import { approveApproval, rejectApproval } from '@/api/approval';
+import { approveApproval, rejectApproval, withdrawApproval } from '@/api/approval';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -59,7 +59,7 @@ export default function Home() {
 
   // 处理查看审批单
   const handleViewApproval = (record: ApprovalForm) => {
-    console.log('查看审批单详情:', record);
+    console.log('查看审批单详情: ----record------', record);
     setModalMode('view');
     setSelectedRecord(record);
     setModalVisible(true);
@@ -67,7 +67,7 @@ export default function Home() {
 
   // 处理修改审批单
   const handleEditApproval = (record: ApprovalForm) => {
-    console.log('修改审批单:', record);
+    console.log('修改审批单: ----record------', record);
     setModalMode('edit');
     setSelectedRecord(record);
     setModalVisible(true);
@@ -75,7 +75,7 @@ export default function Home() {
 
   // 确认弹窗状态
   const [actionRecord, setActionRecord] = useState<ApprovalForm | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+  const [actionType, setActionType] = useState<'approve' | 'reject' | 'withdraw' | null>(null);
 
   // 关闭弹窗
   const handleCloseModal = () => {
@@ -86,6 +86,17 @@ export default function Home() {
   // 弹窗操作成功
   const handleModalSuccess = () => {
     fetchApprovalList();
+  };
+
+  // 处理撤回审批单
+  const handleWithdraw = async (record: ApprovalForm) => {
+    try {
+      setActionRecord(record);
+      setActionType('withdraw');
+      fetchApprovalList();
+    } catch (error) {
+      console.error('撤回失败:', error);
+    }
   };
 
   // 处理审批通过
@@ -109,9 +120,12 @@ export default function Home() {
         console.log('审批通过:', actionRecord.id);
         await approveApproval(actionRecord.id, currentRole);
         Message.success('审批已通过');
-      } else {
+      } else if (actionType === 'reject') {
         await rejectApproval(actionRecord.id, currentRole);
         Message.success('审批已驳回');
+      } else if (actionType === 'withdraw') {
+        await withdrawApproval(actionRecord.id);
+        Message.success('审批单已撤回');
       }
       fetchApprovalList();
       handleCloseConfirm();
@@ -152,6 +166,7 @@ export default function Home() {
             onEdit={handleEditApproval}
             onApprove={handleApprove}
             onReject={handleReject}
+            onWithdraw={handleWithdraw}
           />
         </div>
       </main>
@@ -167,7 +182,7 @@ export default function Home() {
 
       {/* 确认操作弹窗 */}
       <Modal
-        title={actionType === 'approve' ? '确认通过' : '确认驳回'}
+        title={actionType === 'approve' ? '确认通过' : actionType === 'reject' ? '确认驳回' : '确认撤回'}
         visible={!!actionRecord}
         onOk={handleConfirmAction}
         onCancel={handleCloseConfirm}
@@ -176,7 +191,8 @@ export default function Home() {
       >
         {actionRecord && (
           <p>
-            确定要{actionType === 'approve' ? '通过' : '驳回'} "{actionRecord.projectName}" 的审批申请吗？
+            确定要{actionType === 'approve' ? '通过' : actionType === 'reject' ? '驳回' : '撤回'}
+            "{actionRecord.projectName}" 的审批申请吗？
           </p>
         )}
       </Modal>
