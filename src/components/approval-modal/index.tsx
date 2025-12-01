@@ -1,4 +1,5 @@
 'use client';
+import dayjs from 'dayjs';
 
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, DatePicker, Cascader, Button, Message } from '@arco-design/web-react';
@@ -6,6 +7,9 @@ import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-modal.module.css';
 import { getDepartmentIdPath } from '@/utils/convert';
+import { createApproval, updateApproval } from '@/api/approval';
+import { useUserRoleStore } from '@/store/useUserRoleStore';
+
 
 const FormItem = Form.Item;
 const TextArea = Input.TextArea;
@@ -27,43 +31,8 @@ export default function ApprovalModal({
 }: ApprovalModalProps) {
   const [form] = Form.useForm();
   const { fetchApprovalList } = useApprovalStore();
+  const { currentUser } = useUserRoleStore();
 
-  // 部门级联数据（示例数据）
-  // const departmentOptions = [
-  //   {
-  //     value: 1,
-  //     label: '技术部',
-  //     children: [
-  //       {
-  //         value: 2,
-  //         label: '前端研发组',
-  //         children: [
-  //           { value: 3, label: 'React开发团队' },
-  //           { value: 4, label: 'Vue开发团队' },
-  //         ],
-  //       },
-  //       {
-  //         value: 5,
-  //         label: '后端研发组',
-  //         children: [
-  //           { value: 6, label: 'Java开发团队' },
-  //           { value: 7, label: 'Go开发团队' },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     value: 8,
-  //     label: '财务部',
-  //     children: [
-  //       {
-  //         value: 9,
-  //         label: '会计组',
-  //         children: [{ value: 10, label: '成本核算团队' }],
-  //       },
-  //     ],
-  //   },
-  // ];
   // 从 Store 获取部门数据
   const { departmentOptions, fetchDepartmentOptions } = useApprovalStore();
 
@@ -112,7 +81,8 @@ export default function ApprovalModal({
         projectName: record.projectName,
         content: record.content,
         department: departmentPathIds,
-        executeDate: record.executeDate,
+        // Convert string date to dayjs for DatePicker
+        executeDate: record.executeDate ? dayjs(record.executeDate) : undefined,
       });
     } else if (visible && mode === 'create') {
       form.resetFields();
@@ -125,14 +95,38 @@ export default function ApprovalModal({
       const values = await form.validate();
       console.log('----values:------', values);
 
+      // 提取部门ID (Cascader 返回的是数组，取最后一个)
+      const departmentId = Array.isArray(values.department)
+        ? values.department[values.department.length - 1]
+        : values.department;
+
+      // 将 DatePicker 返回的 dayjs 对象转换为字符串
+      const executeDate = values.executeDate ? values.executeDate.format('YYYY-MM-DD') : undefined;
+
       if (mode === 'create') {
-        // TODO: 调用创建API
-        console.log('创建审批单:', values);
-        Message.success('审批单创建成功！');
-      } else if (mode === 'edit') {
-        // TODO: 调用更新API
-        console.log('更新审批单:', { id: record?.id, ...values });
-        Message.success('审批单修改成功！');
+        const payload = {
+          ...values,
+          departmentId,
+          executeDate,
+          applicantId: currentUser?.id || 1, // 默认使用当前用户ID，如果为空则默认为1
+        };
+        delete payload.department; // 移除原始的 department 数组字段
+
+        // 创建或编辑前打印 payload，检查 executeDate 是否正确
+        console.log('payload to submit:', payload);
+        await createApproval(payload);
+        // messageApi?.success('审批单创建成功！'); // optional success toast
+      } else if (mode === 'edit' && record) {
+        console.log('-=============values:==========', values);
+        const payload = {
+          ...values,
+          departmentId,
+          executeDate,
+        };
+        delete payload.department;
+
+        await updateApproval(record.id, payload);
+        // messageApi?.success('审批单修改成功！'); // optional success toast
       }
 
       // 刷新列表
@@ -140,7 +134,8 @@ export default function ApprovalModal({
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error('表单验证失败:', error);
+      console.error('操作失败:', error);
+
     }
   };
 

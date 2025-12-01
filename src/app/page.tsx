@@ -73,39 +73,9 @@ export default function Home() {
     setModalVisible(true);
   };
 
-  // 处理审批通过
-  const handleApprove = (record: ApprovalForm) => {
-    Modal.confirm({
-      title: '确认通过',
-      content: `确定要通过 "${record.projectName}" 的审批申请吗？`,
-      onOk: async () => {
-        try {
-          await approveApproval(record.id);
-          Message.success('审批已通过');
-          fetchApprovalList();
-        } catch (error) {
-          console.error('审批失败:', error);
-        }
-      },
-    });
-  };
-
-  // 处理审批驳回
-  const handleReject = (record: ApprovalForm) => {
-    Modal.confirm({
-      title: '确认驳回',
-      content: `确定要驳回 "${record.projectName}" 的审批申请吗？`,
-      onOk: async () => {
-        try {
-          await rejectApproval(record.id);
-          Message.success('审批已驳回');
-          fetchApprovalList();
-        } catch (error) {
-          console.error('驳回失败:', error);
-        }
-      },
-    });
-  };
+  // 确认弹窗状态
+  const [actionRecord, setActionRecord] = useState<ApprovalForm | null>(null);
+  const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
 
   // 关闭弹窗
   const handleCloseModal = () => {
@@ -116,6 +86,44 @@ export default function Home() {
   // 弹窗操作成功
   const handleModalSuccess = () => {
     fetchApprovalList();
+  };
+
+  // 处理审批通过
+  const handleApprove = (record: ApprovalForm) => {
+    setActionRecord(record);
+    setActionType('approve');
+  };
+
+  // 处理审批驳回
+  const handleReject = (record: ApprovalForm) => {
+    setActionRecord(record);
+    setActionType('reject');
+  };
+
+  // 执行确认操作
+  const handleConfirmAction = async () => {
+    if (!actionRecord || !actionType) return;
+
+    try {
+      if (actionType === 'approve') {
+        console.log('审批通过:', actionRecord.id);
+        await approveApproval(actionRecord.id, currentRole);
+        Message.success('审批已通过');
+      } else {
+        await rejectApproval(actionRecord.id, currentRole);
+        Message.success('审批已驳回');
+      }
+      fetchApprovalList();
+      handleCloseConfirm();
+    } catch (error) {
+      console.error('操作失败:', error);
+    }
+  };
+
+  // 关闭确认弹窗
+  const handleCloseConfirm = () => {
+    setActionRecord(null);
+    setActionType(null);
   };
 
   return (
@@ -156,6 +164,22 @@ export default function Home() {
         onClose={handleCloseModal}
         onSuccess={handleModalSuccess}
       />
+
+      {/* 确认操作弹窗 */}
+      <Modal
+        title={actionType === 'approve' ? '确认通过' : '确认驳回'}
+        visible={!!actionRecord}
+        onOk={handleConfirmAction}
+        onCancel={handleCloseConfirm}
+        okText="确认"
+        cancelText="取消"
+      >
+        {actionRecord && (
+          <p>
+            确定要{actionType === 'approve' ? '通过' : '驳回'} "{actionRecord.projectName}" 的审批申请吗？
+          </p>
+        )}
+      </Modal>
     </div>
   );
 }

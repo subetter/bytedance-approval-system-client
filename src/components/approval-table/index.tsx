@@ -63,6 +63,7 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject }: A
     // 处理查看
     const handleView = (record: ApprovalForm) => {
         console.log('查看审批单record:', record);
+        console.log('查看审批单record.executeDate:', record.executeDate)
         onView?.(record);
     };
 
