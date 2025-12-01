@@ -13,8 +13,8 @@ import { IconDown, IconUp } from '@arco-design/web-react/icon';
 import { ApprovalStatus } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import styles from './filter-panel.module.css';
-import { fetchDepartments } from '@/api/department';
-import { transformDepartmentToOptions, CascaderOption } from '@/utils/convert';
+import { useApprovalStore } from '@/store';
+
 
 const { Row, Col } = Grid;
 const { RangePicker } = DatePicker;
@@ -28,24 +28,14 @@ interface FilterPanelProps {
 export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
     const [form] = Form.useForm();
     const [collapsed, setCollapsed] = useState(false);
-    const [departmentOptions, setDepartmentOptions] = useState<CascaderOption[]>([]);
+
+    // 从 Store 获取部门数据
+    const { departmentOptions, fetchDepartmentOptions } = useApprovalStore();
 
     // 获取部门数据
     useEffect(() => {
-        const loadDepartments = async () => {
-            try {
-                const response = await fetchDepartments();
-                if (response.data) {
-                    const options = transformDepartmentToOptions(response.data);
-                    setDepartmentOptions(options);
-                }
-            } catch (error) {
-                console.error('加载部门数据失败:', error);
-            }
-        };
-
-        loadDepartments();
-    }, []);
+        fetchDepartmentOptions();
+    }, [fetchDepartmentOptions]);
 
     // 审批状态选项
     const statusOptions = [

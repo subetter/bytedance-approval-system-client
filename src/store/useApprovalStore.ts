@@ -3,6 +3,8 @@ import { ApprovalForm } from '@/types/approval';
 import { ApprovalFormQueryParams, PaginationResponse } from '@/types/api';
 import { ApprovalStatus } from '@/types/enum';
 import { fetchApprovals } from '@/api/approval';
+import { fetchDepartments } from '@/api/department';
+import { transformDepartmentToOptions, CascaderOption, flattenDepartmentOptions } from '@/utils/convert';
 
 /**
  * 审批单状态接口
@@ -15,6 +17,8 @@ interface ApprovalState {
     currentPage: number;
     pageSize: number;
     queryParams: Partial<ApprovalFormQueryParams>;
+    departmentOptions: CascaderOption[]; // 部门选项数据
+    departmentPathMap: Map<string, string>; // 部门路径映射 Map<id, path>
 
     // Actions
     setApprovalList: (list: ApprovalForm[]) => void;
@@ -25,6 +29,7 @@ interface ApprovalState {
     setQueryParams: (params: Partial<ApprovalFormQueryParams>) => void;
     resetQueryParams: () => void;
     fetchApprovalList: (params?: ApprovalFormQueryParams) => Promise<void>;
+    fetchDepartmentOptions: () => Promise<void>; // 获取部门选项
 }
 
 /**
@@ -38,6 +43,8 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
     currentPage: 1,
     pageSize: 10,
     queryParams: {},
+    departmentOptions: [],
+    departmentPathMap: new Map(),
 
     // 设置审批单列表
     setApprovalList: list => {
@@ -75,6 +82,27 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
             queryParams: {},
             currentPage: 1,
         });
+    },
+
+    // 获取部门选项数据
+    fetchDepartmentOptions: async () => {
+        // 如果已经有数据，不再重复请求
+        if (get().departmentOptions.length > 0) return;
+
+        try {
+            // 请求 format=options，后端会返回包含 path 的树形结构
+            const response = await fetchDepartments({ format: 'options' });
+            if (response.data) {
+                const options = transformDepartmentToOptions(response.data);
+                const pathMap = flattenDepartmentOptions(options);
+                set({
+                    departmentOptions: options,
+                    departmentPathMap: pathMap
+                });
+            }
+        } catch (error) {
+            console.error('加载部门数据失败:', error);
+        }
     },
 
     // 获取审批单列表

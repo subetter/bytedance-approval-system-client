@@ -39,13 +39,13 @@ export function toCamelCase<T = any>(data: any): T {
 export interface CascaderOption {
     value: number | string;
     label: string;
+    path?: string; // 完整路径
     children?: CascaderOption[];
 }
 
 /**
  * 将部门树转换为 Cascader 选项格式
- * @param departments 部门树数组
- * @returns Cascader 选项数组
+ * (如果后端直接返回 options 格式，此函数可能只需要做简单的透传或类型转换)
  */
 export function transformDepartmentToOptions(departments: any[]): CascaderOption[] {
     if (!departments || !Array.isArray(departments)) {
@@ -54,8 +54,9 @@ export function transformDepartmentToOptions(departments: any[]): CascaderOption
 
     return departments.map(dept => {
         const option: CascaderOption = {
-            value: dept.id,
-            label: dept.name,
+            value: dept.value || dept.id, // 兼容后端返回的 value 或 id
+            label: dept.label || dept.name, // 兼容后端返回的 label 或 name
+            path: dept.path,
         };
 
         if (dept.children && dept.children.length > 0) {
@@ -64,4 +65,58 @@ export function transformDepartmentToOptions(departments: any[]): CascaderOption
 
         return option;
     });
+}
+
+/**
+ * 扁平化部门选项，用于通过 ID 快速查找 Path
+ * @param options 部门选项树
+ * @returns Map<value, path>
+ */
+export function flattenDepartmentOptions(options: CascaderOption[]): Map<string, string> {
+    const map = new Map<string, string>();
+
+    const traverse = (nodes: CascaderOption[]) => {
+        for (const node of nodes) {
+            if (node.path) {
+                map.set(String(node.value), node.path);
+            }
+            if (node.children) {
+                traverse(node.children);
+            }
+        }
+    };
+
+    traverse(options);
+    return map;
+}
+
+/**
+ * 根据部门ID查找完整路径 (使用扁平化 Map 优化性能)
+ * @param departmentMap 扁平化的部门 Map
+ * @param targetId 目标部门ID
+ * @returns 部门路径字符串
+ */
+export function getDepartmentPath(departmentMap: Map<string, string>, targetId: number | string): string {
+    return departmentMap.get(String(targetId)) || '';
+}
+
+/**
+ * 根据部门ID在选项树中查找完整的ID路径数组
+ * @param options 部门选项树
+ * @param targetId 目标部门ID
+ * @returns ID路径数组 (e.g. [1, 2, 3])
+ */
+export function getDepartmentIdPath(options: CascaderOption[], targetId: number | string): (number | string)[] {
+    for (const option of options) {
+        if (String(option.value) === String(targetId)) {
+            return [option.value];
+        }
+        if (option.children && option.children.length > 0) {
+            const childPath = getDepartmentIdPath(option.children, targetId);
+            if (childPath.length > 0) {
+                return [option.value, ...childPath];
+            }
+        }
+    }
+    return [];
 }

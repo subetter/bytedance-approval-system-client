@@ -5,6 +5,6 @@ import { ApiResponse } from '@/types/api';
 /**
  * 获取部门列表（树形结构）
  */
-export function fetchDepartments(): Promise<ApiResponse<Department[]>> {
-    return request.get('/departments');
+export function fetchDepartments(params?: { format?: string }): Promise<ApiResponse<Department[]>> {
+    return request.get('/departments', { params });
 }

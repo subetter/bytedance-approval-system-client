@@ -5,6 +5,7 @@ import { Modal, Form, Input, DatePicker, Cascader, Button, Message } from '@arco
 import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-modal.module.css';
+import { getDepartmentIdPath } from '@/utils/convert';
 
 const FormItem = Form.Item;
 const TextArea = Input.TextArea;
@@ -28,41 +29,43 @@ export default function ApprovalModal({
   const { fetchApprovalList } = useApprovalStore();
 
   // 部门级联数据（示例数据）
-  const departmentOptions = [
-    {
-      value: 1,
-      label: '技术部',
-      children: [
-        {
-          value: 2,
-          label: '前端研发组',
-          children: [
-            { value: 3, label: 'React开发团队' },
-            { value: 4, label: 'Vue开发团队' },
-          ],
-        },
-        {
-          value: 5,
-          label: '后端研发组',
-          children: [
-            { value: 6, label: 'Java开发团队' },
-            { value: 7, label: 'Go开发团队' },
-          ],
-        },
-      ],
-    },
-    {
-      value: 8,
-      label: '财务部',
-      children: [
-        {
-          value: 9,
-          label: '会计组',
-          children: [{ value: 10, label: '成本核算团队' }],
-        },
-      ],
-    },
-  ];
+  // const departmentOptions = [
+  //   {
+  //     value: 1,
+  //     label: '技术部',
+  //     children: [
+  //       {
+  //         value: 2,
+  //         label: '前端研发组',
+  //         children: [
+  //           { value: 3, label: 'React开发团队' },
+  //           { value: 4, label: 'Vue开发团队' },
+  //         ],
+  //       },
+  //       {
+  //         value: 5,
+  //         label: '后端研发组',
+  //         children: [
+  //           { value: 6, label: 'Java开发团队' },
+  //           { value: 7, label: 'Go开发团队' },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     value: 8,
+  //     label: '财务部',
+  //     children: [
+  //       {
+  //         value: 9,
+  //         label: '会计组',
+  //         children: [{ value: 10, label: '成本核算团队' }],
+  //       },
+  //     ],
+  //   },
+  // ];
+  // 从 Store 获取部门数据
+  const { departmentOptions, fetchDepartmentOptions } = useApprovalStore();
 
   // 获取弹窗标题
   const getTitle = () => {
@@ -81,24 +84,46 @@ export default function ApprovalModal({
   // 是否只读模式
   const isReadOnly = mode === 'view';
 
+  // 当弹窗打开时，确保部门选项已加载
+  useEffect(() => {
+    if (visible) {
+      // 如果尚未加载，则请求部门数据
+      if (departmentOptions.length === 0) {
+        fetchDepartmentOptions();
+      }
+    }
+  }, [visible, departmentOptions, fetchDepartmentOptions]);
+
   // 初始化表单数据
   useEffect(() => {
     if (visible && record && (mode === 'edit' || mode === 'view')) {
+      // 计算部门ID路径
+      let departmentPathIds: (number | string)[] = [];
+      if (record.departmentId && departmentOptions.length > 0) {
+        departmentPathIds = getDepartmentIdPath(departmentOptions, record.departmentId);
+      }
+
+      // 如果找不到路径但有 ID，至少放入 ID (虽然 Cascader 可能无法正确显示路径，但至少有值)
+      if (departmentPathIds.length === 0 && record.departmentId) {
+        departmentPathIds = [record.departmentId];
+      }
+
       form.setFieldsValue({
         projectName: record.projectName,
         content: record.content,
-        department: [1, 2, record.departmentId], // 示例：假设是三级路径
+        department: departmentPathIds,
         executeDate: record.executeDate,
       });
     } else if (visible && mode === 'create') {
       form.resetFields();
     }
-  }, [visible, record, mode, form]);
+  }, [visible, record, mode, form, departmentOptions]);
 
   // 处理提交
   const handleSubmit = async () => {
     try {
       const values = await form.validate();
+      console.log('----values:------', values);
 
       if (mode === 'create') {
         // TODO: 调用创建API
