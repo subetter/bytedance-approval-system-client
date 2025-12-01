@@ -161,7 +161,11 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
                                     }
                                     field="keyword"
                                 >
-                                    <Input placeholder="请输入审批项目关键字" allowClear />
+                                    <Input
+                                        placeholder="请输入审批项目关键字"
+                                        allowClear
+                                        onPressEnter={handleSearch}
+                                    />
                                 </FormItem>
                             </Col>
 
