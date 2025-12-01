@@ -14,6 +14,8 @@ import { ApprovalStatus } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import styles from './filter-panel.module.css';
 import { useApprovalStore } from '@/store';
+import { useUserRoleStore } from '@/store/useUserRoleStore';
+import { UserRole } from '@/types/enum';
 
 
 const { Row, Col } = Grid;
@@ -31,11 +33,24 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
 
     // 从 Store 获取部门数据
     const { departmentOptions, fetchDepartmentOptions } = useApprovalStore();
+    // 获取当前角色
+    const { currentRole } = useUserRoleStore();
 
     // 获取部门数据
     useEffect(() => {
         fetchDepartmentOptions();
     }, [fetchDepartmentOptions]);
+
+    // 监听角色变化
+    useEffect(() => {
+        if (currentRole === UserRole.APPROVER) {
+            // 如果是审批人，强制设置状态为待审批
+            form.setFieldValue('status', ApprovalStatus.PENDING);
+        } else {
+            // 切换回申请人时，重置为全部（空字符串）
+            form.setFieldValue('status', '');
+        }
+    }, [currentRole, form]);
 
     // 审批状态选项
     const statusOptions = [
@@ -93,7 +108,12 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
                         {/* 审批状态 */}
                         <Col span={8}>
                             <FormItem label="审批状态" field="status">
-                                <Select placeholder="请选择状态" allowClear options={statusOptions} />
+                                <Select
+                                    placeholder="请选择状态"
+                                    allowClear={currentRole !== UserRole.APPROVER}
+                                    disabled={currentRole === UserRole.APPROVER}
+                                    options={statusOptions}
+                                />
                             </FormItem>
                         </Col>
 

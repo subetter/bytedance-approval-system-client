@@ -30,6 +30,7 @@ export interface ApprovalFormQueryParams extends PaginationParams {
   applicantId?: number; // 按申请人筛选
   currentApproverId?: number; // 按当前审批人筛选
   departmentId?: number; // 按部门筛选
+  role?: 'APPLICANT' | 'APPROVER'; // 用户角色: APPLICANT | APPROVER
 
   // 创建时间范围
   createTimeStart?: string;

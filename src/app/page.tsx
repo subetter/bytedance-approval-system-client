@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@arco-design/web-react';
+import { Button, Modal, Message } from '@arco-design/web-react';
 import NavigationBar from '@/components/navgation-bar';
 import FilterPanel from '@/components/filter-panel';
 import ApprovalTable from '@/components/approval-table';
@@ -10,6 +10,7 @@ import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
 import { useUserRoleStore, useApprovalStore } from '@/store';
+import { approveApproval, rejectApproval } from '@/api/approval';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -25,6 +26,9 @@ export default function Home() {
   // 处理角色切换
   const handleRoleChange = (role: UserRole) => {
     switchRole(role);
+    // 切换角色后，重置查询条件（回到第一页）并重新获取列表
+    resetQueryParams();
+    fetchApprovalList();
   };
 
   // 根据角色显示用户名
@@ -69,6 +73,40 @@ export default function Home() {
     setModalVisible(true);
   };
 
+  // 处理审批通过
+  const handleApprove = (record: ApprovalForm) => {
+    Modal.confirm({
+      title: '确认通过',
+      content: `确定要通过 "${record.projectName}" 的审批申请吗？`,
+      onOk: async () => {
+        try {
+          await approveApproval(record.id);
+          Message.success('审批已通过');
+          fetchApprovalList();
+        } catch (error) {
+          console.error('审批失败:', error);
+        }
+      },
+    });
+  };
+
+  // 处理审批驳回
+  const handleReject = (record: ApprovalForm) => {
+    Modal.confirm({
+      title: '确认驳回',
+      content: `确定要驳回 "${record.projectName}" 的审批申请吗？`,
+      onOk: async () => {
+        try {
+          await rejectApproval(record.id);
+          Message.success('审批已驳回');
+          fetchApprovalList();
+        } catch (error) {
+          console.error('驳回失败:', error);
+        }
+      },
+    });
+  };
+
   // 关闭弹窗
   const handleCloseModal = () => {
     setModalVisible(false);
@@ -92,14 +130,21 @@ export default function Home() {
         <div className={styles.content}>
           <FilterPanel onSearch={handleSearch} onReset={handleReset} />
 
-          {/* 新建按钮 */}
-          <div className={styles.actionBar}>
-            <Button type="primary" onClick={handleCreate} size="large">
-              新建
-            </Button>
-          </div>
+          {/* 新建按钮 - 仅申请人可见 */}
+          {currentRole === UserRole.APPLICANT && (
+            <div className={styles.actionBar}>
+              <Button type="primary" onClick={handleCreate} size="large">
+                新建
+              </Button>
+            </div>
+          )}
 
-          <ApprovalTable onView={handleViewApproval} onEdit={handleEditApproval} />
+          <ApprovalTable
+            onView={handleViewApproval}
+            onEdit={handleEditApproval}
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
         </div>
       </main>
 

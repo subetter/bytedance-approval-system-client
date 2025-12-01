@@ -7,13 +7,18 @@ import { ApprovalStatusText } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-table.module.css';
 import { getDepartmentPath } from '@/utils/convert';
+import { useUserRoleStore } from '@/store/useUserRoleStore';
+import { UserRole } from '@/types/enum';
+import { IconCheck, IconClose } from '@arco-design/web-react/icon';
 
 interface ApprovalTableProps {
     onView?: (record: ApprovalForm) => void;
     onEdit?: (record: ApprovalForm) => void;
+    onApprove?: (record: ApprovalForm) => void;
+    onReject?: (record: ApprovalForm) => void;
 }
 
-export default function ApprovalTable({ onView, onEdit }: ApprovalTableProps) {
+export default function ApprovalTable({ onView, onEdit, onApprove, onReject }: ApprovalTableProps) {
     const {
         approvalList,
         loading,
@@ -26,6 +31,7 @@ export default function ApprovalTable({ onView, onEdit }: ApprovalTableProps) {
         fetchApprovalList,
         fetchDepartmentOptions,
     } = useApprovalStore();
+    const { currentRole } = useUserRoleStore();
 
     // 组件挂载时加载数据
     useEffect(() => {
@@ -64,6 +70,16 @@ export default function ApprovalTable({ onView, onEdit }: ApprovalTableProps) {
     const handleEdit = (record: ApprovalForm) => {
         console.log('修改审批单:', record);
         onEdit?.(record);
+    };
+
+    // 处理通过
+    const handleApprove = (record: ApprovalForm) => {
+        onApprove?.(record);
+    };
+
+    // 处理驳回
+    const handleReject = (record: ApprovalForm) => {
+        onReject?.(record);
     };
 
     // 表格列配置
@@ -126,16 +142,44 @@ export default function ApprovalTable({ onView, onEdit }: ApprovalTableProps) {
         {
             title: '操作',
             key: 'operation',
-            width: 150,
+            width: 200, // 增加宽度以容纳更多按钮
             fixed: 'right',
             render: (_col, record) => (
                 <Space size="small">
                     <Button type="text" size="small" icon={<IconEye />} onClick={() => handleView(record)}>
                         查看
                     </Button>
-                    <Button type="text" size="small" icon={<IconEdit />} onClick={() => handleEdit(record)}>
-                        修改
-                    </Button>
+
+                    {/* 申请人视角：修改按钮 (仅待审批状态可修改) */}
+                    {currentRole === UserRole.APPLICANT && record.status === ApprovalStatus.PENDING && (
+                        <Button type="text" size="small" icon={<IconEdit />} onClick={() => handleEdit(record)}>
+                            修改
+                        </Button>
+                    )}
+
+                    {/* 审批人视角：通过/驳回按钮 (仅待审批状态可操作) */}
+                    {currentRole === UserRole.APPROVER && record.status === ApprovalStatus.PENDING && (
+                        <>
+                            <Button
+                                type="text"
+                                status="success"
+                                size="small"
+                                icon={<IconCheck />}
+                                onClick={() => handleApprove(record)}
+                            >
+                                通过
+                            </Button>
+                            <Button
+                                type="text"
+                                status="danger"
+                                size="small"
+                                icon={<IconClose />}
+                                onClick={() => handleReject(record)}
+                            >
+                                驳回
+                            </Button>
+                        </>
+                    )}
                 </Space>
             ),
         },

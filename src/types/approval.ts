@@ -41,6 +41,15 @@ export const ApprovalActionText: Record<ApprovalAction, string> = {
 };
 
 /**
+ * 审批状态显示文本映射
+ */
+export const ApprovalStatusText: Record<ApprovalStatus, string> = {
+    [ApprovalStatus.PENDING]: '待审批',
+    [ApprovalStatus.APPROVED]: '审批通过',
+    [ApprovalStatus.REJECTED]: '审批拒绝',
+};
+
+/**
  * 审批流转记录表 (approval_logs)
  * 记录审批单的所有操作历史
  */

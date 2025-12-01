@@ -5,6 +5,7 @@ import { ApprovalStatus } from '@/types/enum';
 import { fetchApprovals } from '@/api/approval';
 import { fetchDepartments } from '@/api/department';
 import { transformDepartmentToOptions, CascaderOption, flattenDepartmentOptions } from '@/utils/convert';
+import { useUserRoleStore } from './useUserRoleStore';
 
 /**
  * 审批单状态接口
@@ -106,40 +107,34 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
     },
 
     // 获取审批单列表
-    fetchApprovalList: async params => {
+    fetchApprovalList: async (params) => {
         set({ loading: true });
-
         try {
             const { currentPage, pageSize, queryParams } = get();
+            const { currentRole } = useUserRoleStore.getState(); // 获取当前角色
 
-            // 合并参数：优先使用传入的 params，其次是 store 中的 queryParams
-            // 同时带上分页参数
             const requestParams: ApprovalFormQueryParams = {
                 page: currentPage,
                 pageSize: pageSize,
+                role: currentRole, // 传递角色参数
                 ...queryParams,
-                ...(params || {}),
+                ...params,
             };
 
             console.log('发起API请求，参数:', requestParams);
 
             const response = await fetchApprovals(requestParams);
-
             if (response.data) {
+                // 后端返回的数据结构包含 list 和 total
                 set({
-                    // 后端返回的是 list，前端类型定义可能是 data，这里做个兼容
-                    approvalList: response.data.list || response.data.data || [],
+                    approvalList: response.data.list,
                     total: response.data.total,
-                    // 如果后端返回了当前的 page 和 pageSize，也可以更新 store
-                    // currentPage: response.data.page,
-                    // pageSize: response.data.pageSize,
                 });
-            } else {
-                console.error('API请求失败:', response.message);
-                // 可以考虑在这里处理错误提示，或者通过状态暴露错误
             }
         } catch (error) {
-            console.error('获取审批单列表失败:', error);
+            console.error('获取审批列表失败:', error);
+            // Assuming Message is imported or globally available, otherwise it would be a runtime error.
+            // Message.error('获取审批列表失败'); 
         } finally {
             set({ loading: false });
         }
