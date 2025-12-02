@@ -6,6 +6,7 @@ import NavigationBar from '@/components/navgation-bar';
 import FilterPanel from '@/components/filter-panel';
 import ApprovalTable from '@/components/approval-table';
 import ApprovalModal from '@/components/approval-modal';
+import ApprovalDrawer from '@/components/approval-drawer';
 import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
@@ -22,6 +23,9 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedRecord, setSelectedRecord] = useState<ApprovalForm | undefined>();
+
+  // 抽屉状态
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   // 处理角色切换
   const handleRoleChange = (role: UserRole) => {
@@ -60,9 +64,8 @@ export default function Home() {
   // 处理查看审批单
   const handleViewApproval = (record: ApprovalForm) => {
     console.log('查看审批单详情: ----record------', record);
-    setModalMode('view');
     setSelectedRecord(record);
-    setModalVisible(true);
+    setDrawerVisible(true);
   };
 
   // 处理修改审批单
@@ -71,6 +74,12 @@ export default function Home() {
     setModalMode('edit');
     setSelectedRecord(record);
     setModalVisible(true);
+  };
+
+  // 关闭抽屉
+  const handleCloseDrawer = () => {
+    setDrawerVisible(false);
+    setSelectedRecord(undefined);
   };
 
   // 确认弹窗状态
@@ -171,13 +180,20 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 审批单弹窗 */}
+      {/* 审批单弹窗 (新建/编辑) */}
       <ApprovalModal
         visible={modalVisible}
         mode={modalMode}
         record={selectedRecord}
         onClose={handleCloseModal}
         onSuccess={handleModalSuccess}
+      />
+
+      {/* 审批单详情抽屉 (查看) */}
+      <ApprovalDrawer
+        visible={drawerVisible}
+        record={selectedRecord}
+        onClose={handleCloseDrawer}
       />
 
       {/* 确认操作弹窗 */}
