@@ -2,8 +2,8 @@
 import dayjs from 'dayjs';
 
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, Cascader, Button, Message } from '@arco-design/web-react';
-import { ApprovalForm } from '@/types/approval';
+import { Modal, Form, Input, DatePicker, Cascader, Button, Message, Drawer, Descriptions, Divider } from '@arco-design/web-react';
+import { ApprovalForm, ApprovalStatusText } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-modal.module.css';
 import { getDepartmentIdPath } from '@/utils/convert';
@@ -146,27 +146,63 @@ export default function ApprovalModal({
     onClose();
   };
 
+  if (mode === 'view' && record) {
+    return (
+      <Drawer
+        width={600}
+        title={getTitle()}
+        visible={visible}
+        onCancel={onClose}
+        footer={null}
+      >
+        <Descriptions
+          colon=":"
+          title="基本信息"
+          column={1}
+          labelStyle={{ width: 100 }}
+          data={[
+            { label: '审批项目', value: record.projectName },
+            { label: '申请部门', value: record.departmentPath || record.departmentName || '--' },
+            { label: '执行日期', value: record.executeDate },
+            { label: '申请人', value: record.applicantName || '--' },
+            { label: '创建时间', value: dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss') },
+            { label: '审批状态', value: ApprovalStatusText[record.status] },
+          ]}
+        />
+        <Divider />
+        <Descriptions
+          colon=":"
+          title="审批内容"
+          column={1}
+          labelStyle={{ width: 100 }}
+          data={[
+            {
+              label: '内容详情',
+              value: <div style={{ whiteSpace: 'pre-wrap' }}>{record.content}</div>,
+            },
+          ]}
+        />
+      </Drawer>
+    );
+  }
+
   return (
     <Modal
       title={getTitle()}
       visible={visible}
       onCancel={handleCancel}
       footer={
-        isReadOnly ? (
-          <Button onClick={handleCancel}>关闭</Button>
-        ) : (
-          <>
-            <Button onClick={handleCancel}>取消</Button>
-            <Button type="primary" onClick={handleSubmit}>
-              {mode === 'create' ? '提交' : '保存'}
-            </Button>
-          </>
-        )
+        <>
+          <Button onClick={handleCancel}>取消</Button>
+          <Button type="primary" onClick={handleSubmit}>
+            {mode === 'create' ? '提交' : '保存'}
+          </Button>
+        </>
       }
       className={styles.modal}
       style={{ width: 600 }}
     >
-      <Form form={form} layout="vertical" disabled={isReadOnly} autoComplete="off">
+      <Form form={form} layout="vertical" autoComplete="off">
         <FormItem
           label="审批项目"
           field="projectName"
