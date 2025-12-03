@@ -163,7 +163,7 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject, onW
             {
                 title: '操作',
                 key: 'operation',
-                width: 200,
+                width: 280,
                 fixed: 'right',
                 render: (_col, record) => (
                     <Space size="small">
@@ -172,38 +172,52 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject, onW
                         </Button>
 
                         {/* 申请人视角：修改按钮 (仅待审批状态可修改) */}
-                        {currentRole === UserRole.APPLICANT && record.status === ApprovalStatus.PENDING && (
-                            <Button type="text" size="small" icon={<IconEdit />} onClick={() => handleEdit(record)}>
+                        {currentRole === UserRole.APPLICANT && (
+                            <Button
+                                type="text"
+                                size="small"
+                                icon={<IconEdit />}
+                                onClick={() => handleEdit(record)}
+                                disabled={record.status !== ApprovalStatus.PENDING}
+                            >
                                 修改
                             </Button>
                         )}
 
                         {/* 申请人视角：撤回按钮 (仅待审批状态可撤回) */}
-                        {currentRole === UserRole.APPLICANT && record.status === ApprovalStatus.PENDING && onWithdraw && (
-                            <Button type="text" status="danger" size="small" onClick={() => onWithdraw(record)}>
+                        {currentRole === UserRole.APPLICANT && onWithdraw && (
+                            <Button
+                                type="text"
+                                status="danger"
+                                size="small"
+                                onClick={() => onWithdraw(record)}
+                                disabled={record.status !== ApprovalStatus.PENDING}
+                            >
                                 撤回
                             </Button>
                         )}
 
                         {/* 审批人视角：通过/驳回按钮 (仅待审批状态可操作) */}
-                        {currentRole === UserRole.APPROVER && record.status === ApprovalStatus.PENDING && (
+                        {currentRole === UserRole.APPROVER && (
                             <Button
                                 type="text"
                                 status="success"
                                 size="small"
                                 icon={<IconCheck />}
                                 onClick={() => handleApprove(record)}
+                                disabled={record.status !== ApprovalStatus.PENDING}
                             >
                                 通过
                             </Button>
                         )}
-                        {currentRole === UserRole.APPROVER && record.status === ApprovalStatus.PENDING && onReject && (
+                        {currentRole === UserRole.APPROVER && onReject && (
                             <Button
                                 type="text"
                                 status="danger"
                                 size="small"
                                 icon={<IconClose />}
                                 onClick={() => handleReject(record)}
+                                disabled={record.status !== ApprovalStatus.PENDING}
                             >
                                 驳回
                             </Button>
