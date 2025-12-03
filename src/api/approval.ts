@@ -21,6 +21,13 @@ export function createApproval(data: Partial<ApprovalForm>): Promise<ApiResponse
 }
 
 /**
+ * 批量创建审批单
+ */
+export function batchCreateApprovals(data: Partial<ApprovalForm>[]): Promise<ApiResponse<void>> {
+    return request.post('/approvals/batch', data);
+}
+
+/**
  * 更新审批单
  */
 export function updateApproval(id: number, data: Partial<ApprovalForm>): Promise<ApiResponse<void>> {

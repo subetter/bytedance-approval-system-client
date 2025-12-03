@@ -1,14 +1,18 @@
 'use client';
 import dayjs from 'dayjs';
 
+import * as XLSX from 'xlsx';
+
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, Cascader, Button, Message, Upload } from '@arco-design/web-react';
+import { Modal, Form, Input, DatePicker, Cascader, Button, Message } from '@arco-design/web-react';
 import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-modal.module.css';
 import { getDepartmentIdPath } from '@/utils/convert';
 import { createApproval, updateApproval } from '@/api/approval';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
+
+import ImageUpload from './image';
 
 
 const FormItem = Form.Item;
@@ -157,6 +161,8 @@ export default function ApprovalModal({
     }
   };
 
+
+
   // 处理取消
   const handleCancel = () => {
     form.resetFields();
@@ -234,38 +240,10 @@ export default function ApprovalModal({
           label="附件上传"
           field="images"
         >
-          <Upload
-            multiple
-            imagePreview
-            limit={3}
-            listType="picture-card"
-            action="/api/attachments/upload"
-            data={{
-              formId: record?.id, // 传递当前审批单ID（如果是编辑模式）
-            }}
-            onChange={(fileList, file) => {
-              console.log('上传状态变化:', file.status);
-              console.log('当前文件信息:', file);
-              console.log('完整文件列表:', fileList);
-            }}
-            onPreview={(file) => {
-              Message.info('click preview icon');
-            }}
-            onExceedLimit={() => {
-              Message.warning('最多上传3张图片');
-            }}
-            onRemove={(file) => {
-              return new Promise((resolve, reject) => {
-                console.log('触发删除，文件信息:', file);
-                // 这里可以调用删除接口
-                // deleteFile(file.uid).then(() => resolve(true)).catch(reject);
-
-                // 暂时直接允许删除
-                resolve(true);
-              });
-            }}
-          />
+          <ImageUpload formId={record?.id} />
         </FormItem>
+
+
       </Form>
     </Modal>
   );

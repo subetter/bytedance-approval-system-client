@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Modal, Message } from '@arco-design/web-react';
+import { Button, Modal, Message, Space } from '@arco-design/web-react';
+import ExcelImport from '@/components/excel-import';
 import NavigationBar from '@/components/navgation-bar';
 import FilterPanel from '@/components/filter-panel';
 import ApprovalTable from '@/components/approval-table';
@@ -149,6 +150,8 @@ export default function Home() {
     setActionType(null);
   };
 
+
+
   return (
     <div className={styles.page}>
       <NavigationBar
@@ -164,9 +167,12 @@ export default function Home() {
           {/* 新建按钮 - 仅申请人可见 */}
           {currentRole === UserRole.APPLICANT && (
             <div className={styles.actionBar}>
-              <Button type="primary" onClick={handleCreate} size="large">
-                新建
-              </Button>
+              <Space size={16}>
+                <Button type="primary" onClick={handleCreate} size="large">
+                  新建
+                </Button>
+                <ExcelImport onSuccess={fetchApprovalList} />
+              </Space>
             </div>
           )}
 
