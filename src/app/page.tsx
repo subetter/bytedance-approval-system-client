@@ -189,7 +189,7 @@ export default function Home() {
 
           {/* 新建按钮 - 仅申请人可见 */}
           <div className={styles.actionBar} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Space size={16}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               {currentRole === UserRole.APPLICANT && (
                 <>
                   <Button type="primary" onClick={handleCreate} size="large">
@@ -198,7 +198,7 @@ export default function Home() {
                   <ExcelImport onSuccess={fetchApprovalList} showMessage={showMessage} />
                 </>
               )}
-            </Space>
+            </div>
             <SchemaConfig />
           </div>
 

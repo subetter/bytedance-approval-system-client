@@ -154,30 +154,18 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
                             </FormItem>
                         </Col>
 
-                        {/* 2. 系统固定字段：创建时间 - 已移除，改为动态配置 */}
-                        {/* <Col span={8}>
-                            <FormItem
-                                label={
-                                    <span>
-                                        创建时间
-                                        <span className={styles.labelHint}> (开始/结束)</span>
-                                    </span>
-                                }
-                                field="createTimeRange"
-                            >
-                                <RangePicker
-                                    showTime
-                                    format="YYYY-MM-DD HH:mm:ss"
-                                    style={{ width: '100%' }}
-                                    placeholder={['开始时间', '结束时间']}
-                                />
-                            </FormItem>
-                        </Col> */}
-
                         {/* 3. 动态字段 */}
-                        {formSchema.map(field => {
-                            // 审批时间已经在 schema 中 (approvalAt)，这里不需要单独硬编码
-                            // 但为了保持顺序或者特殊处理，我们可以检查
+                        {formSchema.map((field, index) => {
+                            // 如果折叠，只显示前 2 个动态字段 (加上 status 共 3 个，占一行)
+                            // 注意：这里简单的逻辑是，如果 collapsed，index >= 2 的隐藏
+                            // 但 status 占了一个位置，所以 dynamic fields 显示 2 个正好填满一行 (1+2=3)
+                            // 实际上 Grid 是 24 栅格，span=8 意味着一行 3 个。
+                            // status 是第 1 个。
+                            // dynamic fields 是第 2, 3, ... 个。
+                            // 如果 collapsed，我们希望只显示一行。
+                            // 所以 dynamic fields 应该显示 index < 2 的。
+
+                            if (collapsed && index >= 2) return null;
 
                             let component = null;
                             if (field.component === 'Input' || field.component === 'Textarea') {
@@ -203,7 +191,7 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
                                 );
                             }
 
-                            // 如果是 content，可能不需要在筛选里显示，或者显示为 Input
+                            // 如果是 content，可能不需要在筛选里显示
                             if (field.field === 'content') return null;
 
                             return (
@@ -215,34 +203,38 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
                             );
                         })}
 
-                        {/* 操作按钮 */}
-                        <Col span={8}>
-                            <div className={styles.buttonWrapper} style={{ marginTop: 29 }}>
+                        {/* 占位符，确保按钮在右下角或者跟随在最后 */}
+                        {/* 如果不折叠，按钮应该在最后。如果折叠，按钮应该在第一行最后？ 
+                            或者按钮单独一行？
+                            通常做法是按钮放在最后，如果空间不够会自动换行。
+                            为了美观，我们可以让按钮 float right 或者单独一行。
+                            这里我们尝试让按钮跟随在最后一个 input 后面。
+                        */}
+                        <Col span={8} style={{ display: 'flex', marginTop: 'auto', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+                            <FormItem label=" ">
                                 <Space size="medium">
-                                    <Button type="primary" onClick={handleSearch} style={{ width: '100px' }}>
+                                    <Button type="primary" onClick={handleSearch}>
                                         查询
                                     </Button>
-                                    <Button onClick={handleReset} style={{ width: '100px' }}>
+                                    <Button onClick={handleReset}>
                                         重置
                                     </Button>
+                                    <Button
+                                        type="text"
+                                        size="small"
+                                        onClick={toggleCollapse}
+                                        icon={collapsed ? <IconDown /> : <IconUp />}
+                                    >
+                                        {collapsed ? '展开' : '收起'}
+                                    </Button>
                                 </Space>
-                            </div>
+                            </FormItem>
                         </Col>
                     </Row>
+
                 </Form>
 
-                {/* 收起/展开按钮 */}
-                <div className={styles.collapseRow}>
-                    <Button
-                        type="text"
-                        size="small"
-                        onClick={toggleCollapse}
-                        icon={collapsed ? <IconDown /> : <IconUp />}
-                        iconOnly={false}
-                    >
-                        {collapsed ? '展开' : '收起'}
-                    </Button>
-                </div>
+
             </div>
         </div>
     );

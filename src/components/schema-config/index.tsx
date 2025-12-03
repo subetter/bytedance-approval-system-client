@@ -18,10 +18,8 @@ export default function SchemaConfig({ className }: SchemaConfigProps) {
     const handleChange = async (value: string) => {
         try {
             await fetchFormSchema(value);
-            Message.success('表单配置已更新');
         } catch (error) {
             console.error(error);
-            Message.error('更新失败');
         }
     };
 

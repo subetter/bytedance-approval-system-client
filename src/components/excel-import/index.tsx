@@ -122,7 +122,7 @@ export default function ExcelImport({ onSuccess, showMessage }: ExcelImportProps
     };
 
     return (
-        <Space size={16}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <Upload
                 accept=".xlsx, .xls"
                 showUploadList={false}
@@ -135,10 +135,10 @@ export default function ExcelImport({ onSuccess, showMessage }: ExcelImportProps
             </Upload>
             <span
                 onClick={downloadTemplate}
-                style={{ cursor: 'pointer', fontSize: '12px' }}
+                style={{ cursor: 'pointer', fontSize: '12px', display: 'inline-flex', alignItems: 'center' }}
             >
-                请根据 <span style={{ color: '#165DFF' }}> 表格模板 </span> 格式上传内容
+                请根据 <span style={{ color: '#165DFF', margin: '0 4px' }}> 表格模板 </span> 格式上传内容
             </span>
-        </Space>
+        </div>
     );
 }
