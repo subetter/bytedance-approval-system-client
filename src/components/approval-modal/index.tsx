@@ -4,7 +4,8 @@ import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
 
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, Cascader, Button, Message } from '@arco-design/web-react';
+import { Modal, Form, Input, DatePicker, Cascader, Button } from '@arco-design/web-react';
+import { MessageType } from '@/components/global-message';
 import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-modal.module.css';
@@ -24,6 +25,7 @@ interface ApprovalModalProps {
   record?: ApprovalForm;
   onClose: () => void;
   onSuccess?: () => void;
+  showMessage?: (type: MessageType, content: string, duration?: number) => void;
 }
 
 export default function ApprovalModal({
@@ -32,6 +34,7 @@ export default function ApprovalModal({
   record,
   onClose,
   onSuccess,
+  showMessage,
 }: ApprovalModalProps) {
   const [form] = Form.useForm();
   const { fetchApprovalList } = useApprovalStore();
@@ -137,6 +140,7 @@ export default function ApprovalModal({
         console.log('payload to submit:', payload);
         await createApproval(payload);
         // messageApi?.success('审批单创建成功！'); // optional success toast
+        showMessage?.('success', '审批单创建成功！');
       } else if (mode === 'edit' && record) {
         console.log('-=============values:==========', values);
         const payload = {
@@ -148,7 +152,7 @@ export default function ApprovalModal({
         delete payload.department;
 
         await updateApproval(record.id, payload);
-
+        showMessage?.('success', '审批单修改成功！');
       }
 
       // 刷新列表
@@ -157,7 +161,7 @@ export default function ApprovalModal({
       onClose();
     } catch (error) {
       console.error('操作失败:', error);
-
+      showMessage?.('error', '操作失败');
     }
   };
 

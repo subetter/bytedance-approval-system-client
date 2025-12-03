@@ -1,0 +1,23 @@
+.messageContainer {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    pointer-events: none;
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+    transform: translate(-50%, -20px);
+}
+
+.messageContainer.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.content {
+    pointer-events: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+}

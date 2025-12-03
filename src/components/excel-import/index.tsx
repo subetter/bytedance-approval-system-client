@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Message, Upload, Space } from '@arco-design/web-react';
+import { Button, Upload, Space } from '@arco-design/web-react';
+import { MessageType } from '@/components/global-message';
 import * as XLSX from 'xlsx';
 import dayjs from 'dayjs';
 import { batchCreateApprovals } from '@/api/approval';
@@ -7,9 +8,10 @@ import { fetchDepartmentsByName } from '@/api/department';
 
 interface ExcelImportProps {
     onSuccess: () => void;
+    showMessage: (type: MessageType, content: string, duration?: number) => void;
 }
 
-export default function ExcelImport({ onSuccess }: ExcelImportProps) {
+export default function ExcelImport({ onSuccess, showMessage }: ExcelImportProps) {
     // 批量导入状态
     const [importLoading, setImportLoading] = useState(false);
 
@@ -29,7 +31,8 @@ export default function ExcelImport({ onSuccess }: ExcelImportProps) {
         const reader = new FileReader();
 
         setImportLoading(true);
-        const closeLoading = Message.loading({ content: '正在解析并导入数据...', id: 'importLoading', duration: 0 });
+        setImportLoading(true);
+        showMessage('loading', '正在解析并导入数据...', 0);
 
         reader.onload = async (e) => {
             try {
@@ -40,7 +43,7 @@ export default function ExcelImport({ onSuccess }: ExcelImportProps) {
                 const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                 if (!json || json.length < 2) {
-                    Message.error('表格内容为空');
+                    showMessage('error', '表格内容为空');
                     onError?.(new Error('Empty file'));
                     return;
                 }
@@ -50,7 +53,7 @@ export default function ExcelImport({ onSuccess }: ExcelImportProps) {
                 const isValid = expectedHeaders.every((h, i) => headers[i] === h);
 
                 if (!isValid) {
-                    Message.error('模板格式不正确，请下载最新模板');
+                    showMessage('error', '模板格式不正确，请下载最新模板');
                     onError?.(new Error('Invalid format'));
                     return;
                 }
@@ -91,14 +94,14 @@ export default function ExcelImport({ onSuccess }: ExcelImportProps) {
                 const approvals = (await Promise.all(approvalPromises)).filter(item => item !== null);
 
                 if (approvals.length === 0) {
-                    Message.error('未解析到有效数据，请检查部门名称是否正确');
+                    showMessage('error', '未解析到有效数据，请检查部门名称是否正确');
                     onError?.(new Error('No valid data'));
                     return;
                 }
 
                 const res = await batchCreateApprovals(approvals);
                 if (res.code === 200) {
-                    Message.success(res.message || `成功导入 ${approvals.length} 条审批单`);
+                    showMessage('success', res.message || `成功导入 ${approvals.length} 条审批单`);
                     onUploadSuccess?.(file);
                     onSuccess?.();
                 } else {
@@ -106,11 +109,13 @@ export default function ExcelImport({ onSuccess }: ExcelImportProps) {
                 }
             } catch (err: any) {
                 console.error('导入失败:', err);
-                Message.error(err.message || '导入失败，请检查文件格式');
+                showMessage('error', err.message || '导入失败，请检查文件格式');
                 onError?.(err as Error);
             } finally {
                 setImportLoading(false);
-                closeLoading();
+                // closeLoading(); // Removed as showMessage handles loading state via global state, but we might need to explicitly close it if we want to hide it immediately, or just let the next message replace it.
+                // Actually, since we use a single global message state, showing 'success' or 'error' will replace 'loading'.
+                // If we want to just close it, we might need a closeMessage prop, but usually success/error follows loading.
             }
         };
         reader.readAsBinaryString(file);

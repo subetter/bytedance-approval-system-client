@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Modal, Message, Space } from '@arco-design/web-react';
+import { Button, Modal, Space } from '@arco-design/web-react';
 import ExcelImport from '@/components/excel-import';
+import GlobalMessage, { MessageType } from '@/components/global-message';
 import NavigationBar from '@/components/navgation-bar';
 import FilterPanel from '@/components/filter-panel';
 import ApprovalTable from '@/components/approval-table';
@@ -129,18 +130,19 @@ export default function Home() {
       if (actionType === 'approve') {
         console.log('审批通过:', actionRecord.id);
         await approveApproval(actionRecord.id, currentRole);
-        Message.success('审批已通过');
+        showMessage('success', '审批已通过');
       } else if (actionType === 'reject') {
         await rejectApproval(actionRecord.id, currentRole);
-        Message.success('审批已驳回');
+        showMessage('success', '审批已驳回');
       } else if (actionType === 'withdraw') {
         await withdrawApproval(actionRecord.id);
-        Message.success('审批单已撤回');
+        showMessage('success', '审批单已撤回');
       }
       fetchApprovalList();
       handleCloseConfirm();
     } catch (error) {
       console.error('操作失败:', error);
+      showMessage('error', '操作失败');
     }
   };
 
@@ -148,6 +150,26 @@ export default function Home() {
   const handleCloseConfirm = () => {
     setActionRecord(null);
     setActionType(null);
+  };
+
+  // 全局消息状态
+  const [messageState, setMessageState] = useState<{
+    visible: boolean;
+    type: MessageType;
+    content: string;
+    duration?: number;
+  }>({
+    visible: false,
+    type: 'info',
+    content: '',
+  });
+
+  const showMessage = (type: MessageType, content: string, duration: number = 3000) => {
+    setMessageState({ visible: true, type, content, duration });
+  };
+
+  const closeMessage = () => {
+    setMessageState(prev => ({ ...prev, visible: false }));
   };
 
 
@@ -171,7 +193,7 @@ export default function Home() {
                 <Button type="primary" onClick={handleCreate} size="large">
                   新建
                 </Button>
-                <ExcelImport onSuccess={fetchApprovalList} />
+                <ExcelImport onSuccess={fetchApprovalList} showMessage={showMessage} />
               </Space>
             </div>
           )}
@@ -193,6 +215,7 @@ export default function Home() {
         record={selectedRecord}
         onClose={handleCloseModal}
         onSuccess={handleModalSuccess}
+        showMessage={showMessage}
       />
 
       {/* 审批单详情抽屉 (查看) */}
@@ -218,6 +241,13 @@ export default function Home() {
           </p>
         )}
       </Modal>
+      <GlobalMessage
+        visible={messageState.visible}
+        type={messageState.type}
+        content={messageState.content}
+        duration={messageState.duration}
+        onClose={closeMessage}
+      />
     </div>
   );
 }
