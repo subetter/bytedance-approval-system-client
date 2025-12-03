@@ -133,8 +133,6 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
             }
         } catch (error) {
             console.error('获取审批列表失败:', error);
-            // Assuming Message is imported or globally available, otherwise it would be a runtime error.
-            // Message.error('获取审批列表失败'); 
         } finally {
             set({ loading: false });
         }

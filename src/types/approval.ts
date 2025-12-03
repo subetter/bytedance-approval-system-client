@@ -27,6 +27,7 @@ export interface ApprovalForm {
     updatedAt: string; // 最后更新时间
     approvalAt?: string; // 审批完成时间
     isDeleted: boolean; // 逻辑删除标记
+    attachments?: ApprovalAttachment[]; // 附件列表
 }
 
 /**

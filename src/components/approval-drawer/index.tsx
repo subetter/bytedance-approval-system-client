@@ -1,5 +1,5 @@
 import React from 'react';
-import { Drawer, Descriptions, Divider } from '@arco-design/web-react';
+import { Drawer, Descriptions, Divider, Image, Space } from '@arco-design/web-react';
 import dayjs from 'dayjs';
 import { ApprovalForm, ApprovalStatusText } from '@/types/approval';
 
@@ -44,6 +44,25 @@ export default function ApprovalDrawer({ visible, record, onClose }: ApprovalDra
                     {
                         label: '内容详情',
                         value: <div style={{ whiteSpace: 'pre-wrap' }}>{record.content}</div>,
+                    },
+                    {
+                        label: '附件预览',
+                        value: record.attachments && record.attachments.length > 0 ? (
+                            <Image.PreviewGroup>
+                                <Space wrap>
+                                    {record.attachments.map((attachment: any, index) => (
+                                        <Image
+                                            key={index}
+                                            src={attachment.fileUrl || attachment.file_url}
+                                            alt={attachment.fileName || attachment.file_name}
+                                            width={100}
+                                            height={100}
+                                            style={{ objectFit: 'cover', borderRadius: 4, cursor: 'pointer' }}
+                                        />
+                                    ))}
+                                </Space>
+                            </Image.PreviewGroup>
+                        ) : '--',
                     },
                 ]}
             />

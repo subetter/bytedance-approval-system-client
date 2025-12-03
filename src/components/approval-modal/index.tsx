@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, Cascader, Button, Message } from '@arco-design/web-react';
+import { Modal, Form, Input, DatePicker, Cascader, Button, Message, Upload } from '@arco-design/web-react';
 import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './approval-modal.module.css';
@@ -83,9 +83,19 @@ export default function ApprovalModal({
         department: departmentPathIds,
         // Convert string date to dayjs for DatePicker
         executeDate: record.executeDate ? dayjs(record.executeDate) : undefined,
+        // Initialize images if record has them
+        // Map attachments to Upload file objects
+        images: record.attachments?.map((att: any) => ({
+          uid: String(att.id),
+          name: att.fileName || att.file_name,
+          url: att.fileUrl || att.file_url,
+          status: 'done', // Mark as uploaded
+        })) || [],
       });
     } else if (visible && mode === 'create') {
       form.resetFields();
+      // Explicitly reset images to ensure Upload component is cleared
+      form.setFieldValue('images', []);
     }
   }, [visible, record, mode, form, departmentOptions]);
 
@@ -101,8 +111,13 @@ export default function ApprovalModal({
         : values.department;
 
       // 将 DatePicker 返回的 dayjs 对象转换为字符串
-      const executeDate = values.executeDate;
-      console.log('executeDate: ', executeDate);
+      const executeDate = values.executeDate ? dayjs(values.executeDate).format('YYYY-MM-DD') : undefined;
+
+      // 处理图片上传
+      // 注意：Upload 组件的 value 是 fileList，我们需要提取 url 或者 originFile
+      // 这里假设后端接口接收 images 字段，是一个包含 url 的对象数组或者字符串数组
+      // 根据实际后端需求调整。这里暂时假设直接传 Upload 的 fileList
+      const images = values.images;
 
       if (mode === 'create') {
         const payload = {
@@ -110,6 +125,7 @@ export default function ApprovalModal({
           departmentId,
           executeDate,
           applicantId: currentUser?.id || 1, // 默认使用当前用户ID，如果为空则默认为1
+          images, // 添加图片字段
         };
         delete payload.department; // 移除原始的 department 数组字段
 
@@ -123,6 +139,7 @@ export default function ApprovalModal({
           ...values,
           departmentId,
           executeDate,
+          images, // 添加图片字段
         };
         delete payload.department;
 
@@ -211,6 +228,43 @@ export default function ApprovalModal({
           rules={[{ required: true, message: '请选择执行日期' }]}
         >
           <DatePicker style={{ width: '100%' }} placeholder="2025-11-18" format="YYYY-MM-DD" />
+        </FormItem>
+
+        <FormItem
+          label="附件上传"
+          field="images"
+        >
+          <Upload
+            multiple
+            imagePreview
+            limit={3}
+            listType="picture-card"
+            action="/api/attachments/upload"
+            data={{
+              formId: record?.id, // 传递当前审批单ID（如果是编辑模式）
+            }}
+            onChange={(fileList, file) => {
+              console.log('上传状态变化:', file.status);
+              console.log('当前文件信息:', file);
+              console.log('完整文件列表:', fileList);
+            }}
+            onPreview={(file) => {
+              Message.info('click preview icon');
+            }}
+            onExceedLimit={() => {
+              Message.warning('最多上传3张图片');
+            }}
+            onRemove={(file) => {
+              return new Promise((resolve, reject) => {
+                console.log('触发删除，文件信息:', file);
+                // 这里可以调用删除接口
+                // deleteFile(file.uid).then(() => resolve(true)).catch(reject);
+
+                // 暂时直接允许删除
+                resolve(true);
+              });
+            }}
+          />
         </FormItem>
       </Form>
     </Modal>
