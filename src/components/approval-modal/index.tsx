@@ -251,7 +251,7 @@ export default function ApprovalModal({
     >
       <Form form={form} layout="vertical" autoComplete="off">
         {formSchema.length > 0 ? (
-          formSchema.map(renderFormItem)
+          formSchema.filter(field => field.field !== 'approvalAt').map(renderFormItem)
         ) : (
           // Fallback or loading state if schema is not loaded yet
           <div style={{ textAlign: 'center', padding: 20 }}>加载表单配置中...</div>
