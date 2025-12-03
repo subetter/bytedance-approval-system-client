@@ -28,7 +28,7 @@ export default function ApprovalDrawer({ visible, record, onClose }: ApprovalDra
                 data={[
                     { label: '审批项目', value: record.projectName },
                     { label: '申请部门', value: record.departmentPath || record.departmentName || '--' },
-                    { label: '执行日期', value: record.executeDate },
+                    { label: '执行日期', value: dayjs(record.executeDate).format('YYYY-MM-DD') },
                     { label: '申请人', value: record.applicantName || '--' },
                     { label: '创建时间', value: dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss') },
                     { label: '审批状态', value: ApprovalStatusText[record.status] },

@@ -9,6 +9,7 @@ import FilterPanel from '@/components/filter-panel';
 import ApprovalTable from '@/components/approval-table';
 import ApprovalModal from '@/components/approval-modal';
 import ApprovalDrawer from '@/components/approval-drawer';
+import SchemaConfig from '@/components/schema-config';
 import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
@@ -187,16 +188,19 @@ export default function Home() {
           <FilterPanel onSearch={handleSearch} onReset={handleReset} />
 
           {/* 新建按钮 - 仅申请人可见 */}
-          {currentRole === UserRole.APPLICANT && (
-            <div className={styles.actionBar}>
-              <Space size={16}>
-                <Button type="primary" onClick={handleCreate} size="large">
-                  新建
-                </Button>
-                <ExcelImport onSuccess={fetchApprovalList} showMessage={showMessage} />
-              </Space>
-            </div>
-          )}
+          <div className={styles.actionBar} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Space size={16}>
+              {currentRole === UserRole.APPLICANT && (
+                <>
+                  <Button type="primary" onClick={handleCreate} size="large">
+                    新建
+                  </Button>
+                  <ExcelImport onSuccess={fetchApprovalList} showMessage={showMessage} />
+                </>
+              )}
+            </Space>
+            <SchemaConfig />
+          </div>
 
           <ApprovalTable
             onView={handleViewApproval}
@@ -248,6 +252,8 @@ export default function Home() {
         duration={messageState.duration}
         onClose={closeMessage}
       />
+
+
     </div>
   );
 }

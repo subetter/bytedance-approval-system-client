@@ -4,8 +4,10 @@ import { ApprovalFormQueryParams, PaginationResponse } from '@/types/api';
 import { ApprovalStatus } from '@/types/enum';
 import { fetchApprovals } from '@/api/approval';
 import { fetchDepartments } from '@/api/department';
+import { fetchFormSchema as fetchFormSchemaApi } from '@/api/form';
 import { transformDepartmentToOptions, CascaderOption, flattenDepartmentOptions } from '@/utils/convert';
 import { useUserRoleStore } from './useUserRoleStore';
+import { FormField } from '@/types/form';
 
 /**
  * 审批单状态接口
@@ -20,6 +22,8 @@ interface ApprovalState {
     queryParams: Partial<ApprovalFormQueryParams>;
     departmentOptions: CascaderOption[]; // 部门选项数据
     departmentPathMap: Map<string, string>; // 部门路径映射 Map<id, path>
+    formSchema: FormField[]; // 表单配置
+    currentSchemaKey: string; // 当前表单配置 Key
 
     // Actions
     setApprovalList: (list: ApprovalForm[]) => void;
@@ -31,6 +35,7 @@ interface ApprovalState {
     resetQueryParams: () => void;
     fetchApprovalList: (params?: ApprovalFormQueryParams) => Promise<void>;
     fetchDepartmentOptions: () => Promise<void>; // 获取部门选项
+    fetchFormSchema: (key?: string) => Promise<void>; // 获取表单配置
 }
 
 /**
@@ -46,6 +51,8 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
     queryParams: {},
     departmentOptions: [],
     departmentPathMap: new Map(),
+    formSchema: [],
+    currentSchemaKey: 'basic_approval',
 
     // 设置审批单列表
     setApprovalList: list => {
@@ -103,6 +110,23 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
             }
         } catch (error) {
             console.error('加载部门数据失败:', error);
+        }
+    },
+
+    // 获取表单配置
+    fetchFormSchema: async (key) => {
+        const schemaKey = key || get().currentSchemaKey;
+        try {
+            const res = await fetchFormSchemaApi(schemaKey);
+            if (res.code === 200 || res.code === 0) {
+                set({
+                    formSchema: res.data,
+                    currentSchemaKey: schemaKey
+                });
+            }
+        } catch (error) {
+            console.error('加载表单配置失败:', error);
+            throw error; // Re-throw so UI can handle error
         }
     },
 

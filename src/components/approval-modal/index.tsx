@@ -12,6 +12,7 @@ import styles from './approval-modal.module.css';
 import { getDepartmentIdPath } from '@/utils/convert';
 import { createApproval, updateApproval } from '@/api/approval';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
+import { FormField } from '@/types/form';
 
 import ImageUpload from './image';
 
@@ -41,7 +42,7 @@ export default function ApprovalModal({
   const { currentUser } = useUserRoleStore();
 
   // 从 Store 获取部门数据
-  const { departmentOptions, fetchDepartmentOptions } = useApprovalStore();
+  const { departmentOptions, fetchDepartmentOptions, formSchema } = useApprovalStore();
 
   // 获取弹窗标题
   const getTitle = () => {
@@ -87,9 +88,10 @@ export default function ApprovalModal({
       form.setFieldsValue({
         projectName: record.projectName,
         content: record.content,
-        department: departmentPathIds,
+        departmentId: departmentPathIds, // Schema uses departmentId
         // Convert string date to dayjs for DatePicker
         executeDate: record.executeDate ? dayjs(record.executeDate) : undefined,
+        approvalAt: record.approvalAt ? dayjs(record.approvalAt) : undefined,
         // Initialize images if record has them
         // Map attachments to Upload file objects
         images: record.attachments?.map((att: any) => ({
@@ -113,17 +115,17 @@ export default function ApprovalModal({
       console.log('----values:------', values);
 
       // 提取部门ID (Cascader 返回的是数组，取最后一个)
-      const departmentId = Array.isArray(values.department)
-        ? values.department[values.department.length - 1]
-        : values.department;
+      // Schema field is departmentId, so values.departmentId will be the array from Cascader
+      const departmentIdVal = values.departmentId;
+      const departmentId = Array.isArray(departmentIdVal)
+        ? departmentIdVal[departmentIdVal.length - 1]
+        : departmentIdVal;
 
       // 将 DatePicker 返回的 dayjs 对象转换为字符串
       const executeDate = values.executeDate ? dayjs(values.executeDate).format('YYYY-MM-DD') : undefined;
+      const approvalAt = values.approvalAt ? dayjs(values.approvalAt).format('YYYY-MM-DD HH:mm:ss') : undefined;
 
       // 处理图片上传
-      // 注意：Upload 组件的 value 是 fileList，我们需要提取 url 或者 originFile
-      // 这里假设后端接口接收 images 字段，是一个包含 url 的对象数组或者字符串数组
-      // 根据实际后端需求调整。这里暂时假设直接传 Upload 的 fileList
       const images = values.images;
 
       if (mode === 'create') {
@@ -131,15 +133,15 @@ export default function ApprovalModal({
           ...values,
           departmentId,
           executeDate,
-          applicantId: currentUser?.id || 1, // 默认使用当前用户ID，如果为空则默认为1
-          images, // 添加图片字段
+          approvalAt,
+          applicantId: currentUser?.id || 1,
+          images,
         };
-        delete payload.department; // 移除原始的 department 数组字段
+        // No need to delete department if we use departmentId directly, but values might contain array
+        // We override departmentId with the single ID
 
-        // 创建或编辑前打印 payload，检查 executeDate 是否正确
         console.log('payload to submit:', payload);
         await createApproval(payload);
-        // messageApi?.success('审批单创建成功！'); // optional success toast
         showMessage?.('success', '审批单创建成功！');
       } else if (mode === 'edit' && record) {
         console.log('-=============values:==========', values);
@@ -147,9 +149,9 @@ export default function ApprovalModal({
           ...values,
           departmentId,
           executeDate,
-          images, // 添加图片字段
+          approvalAt,
+          images,
         };
-        delete payload.department;
 
         await updateApproval(record.id, payload);
         showMessage?.('success', '审批单修改成功！');
@@ -163,6 +165,62 @@ export default function ApprovalModal({
       console.error('操作失败:', error);
       showMessage?.('error', '操作失败');
     }
+  };
+
+  const renderFormItem = (field: FormField) => {
+    const { field: fieldName, name, component, validator } = field;
+    const rules = [];
+    if (validator?.required) {
+      rules.push({ required: true, message: `请输入${name}` });
+    }
+    if (validator?.maxCount) {
+      rules.push({ maxLength: validator.maxCount, message: `${name}不能超过${validator.maxCount}个字符` });
+    }
+
+    let formComponent;
+    switch (component) {
+      case 'Input':
+        formComponent = <Input placeholder={`请输入${name}`} maxLength={validator?.maxCount} showWordLimit={!!validator?.maxCount} />;
+        break;
+      case 'Textarea':
+        formComponent = (
+          <TextArea
+            placeholder={`请输入${name}`}
+            maxLength={validator?.maxCount}
+            showWordLimit={!!validator?.maxCount}
+            autoSize={{ minRows: 4, maxRows: 8 }}
+          />
+        );
+        break;
+      case 'DepartmentSelect':
+      case 'Cascader':
+        formComponent = (
+          <Cascader
+            placeholder="请选择部门"
+            options={departmentOptions}
+            showSearch
+            allowClear
+          />
+        );
+        break;
+      case 'DateTimePicker':
+      case 'DatePicker':
+        formComponent = <DatePicker style={{ width: '100%' }} placeholder="请选择日期时间" showTime format="YYYY-MM-DD HH:mm:ss" />;
+        break;
+      default:
+        formComponent = <Input />;
+    }
+
+    return (
+      <FormItem
+        key={fieldName}
+        label={name}
+        field={fieldName}
+        rules={rules}
+      >
+        {formComponent}
+      </FormItem>
+    );
   };
 
 
@@ -192,53 +250,12 @@ export default function ApprovalModal({
       style={{ width: 600 }}
     >
       <Form form={form} layout="vertical" autoComplete="off">
-        <FormItem
-          label="审批项目"
-          field="projectName"
-          rules={[
-            { required: true, message: '请输入审批项目' },
-            { maxLength: 20, message: '审批项目不能超过20个字符' },
-          ]}
-        >
-          <Input placeholder="示例项目名称" maxLength={20} showWordLimit />
-        </FormItem>
-
-        <FormItem
-          label="审批内容"
-          field="content"
-          rules={[
-            { required: true, message: '请输入审批内容' },
-            { maxLength: 300, message: '审批内容不能超过300个字符' },
-          ]}
-        >
-          <TextArea
-            placeholder="这是审批项目对应的具体审批内容，限制300字，长文本会自动换行以保证可读性。"
-            maxLength={300}
-            showWordLimit
-            autoSize={{ minRows: 4, maxRows: 8 }}
-          />
-        </FormItem>
-
-        <FormItem
-          label="申请部门"
-          field="department"
-          rules={[{ required: true, message: '请选择申请部门' }]}
-        >
-          <Cascader
-            placeholder="A部门 / B子部门 / C团队"
-            options={departmentOptions}
-            showSearch
-            allowClear
-          />
-        </FormItem>
-
-        <FormItem
-          label="执行日期"
-          field="executeDate"
-          rules={[{ required: true, message: '请选择执行日期' }]}
-        >
-          <DatePicker style={{ width: '100%' }} placeholder="2025-11-18" format="YYYY-MM-DD" />
-        </FormItem>
+        {formSchema.length > 0 ? (
+          formSchema.map(renderFormItem)
+        ) : (
+          // Fallback or loading state if schema is not loaded yet
+          <div style={{ textAlign: 'center', padding: 20 }}>加载表单配置中...</div>
+        )}
 
         <FormItem
           label="附件上传"
