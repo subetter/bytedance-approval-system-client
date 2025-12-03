@@ -62,7 +62,7 @@ export default function ApprovalDrawer({ visible, record, onClose }: ApprovalDra
                                     ))}
                                 </Space>
                             </Image.PreviewGroup>
-                        ) : '--',
+                        ) : '暂无附件',
                     },
                 ]}
             />
