@@ -1,0 +1,241 @@
+/* 导航栏容器 */
+.navigationBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 左侧区域 */
+.leftSection {
+    display: flex;
+    align-items: center;
+}
+
+/* 页面标题 */
+.pageTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 右侧区域 */
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* 角色容器 */
+.roleContainer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.roleContainer:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 角色标签 */
+.roleLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.3px;
+}
+
+/* 角色选择器 */
+.roleSelector {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.roleSelector:hover {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.roleSelector:active {
+    transform: translateY(0);
+}
+
+/* 角色名称 */
+.roleName {
+    font-size: 14px;
+    font-weight: 600;
+    color: #667eea;
+    letter-spacing: 0.2px;
+}
+
+/* 下拉图标 */
+.dropdownIcon {
+    color: #667eea;
+    transition: transform 0.3s ease;
+}
+
+.dropdownIcon.open {
+    transform: rotate(180deg);
+}
+
+/* 下拉菜单 */
+.dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 160px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+        0 4px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    z-index: 1001;
+    animation: dropdownFadeIn 0.2s ease;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 下拉菜单项 */
+.dropdownItem {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dropdownItem:last-child {
+    border-bottom: none;
+}
+
+.dropdownItem:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+}
+
+.dropdownItem.active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+}
+
+/* 下拉菜单项内容 */
+.dropdownItemContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 下拉菜单项标签 */
+.dropdownItemLabel {
+    font-size: 14px;
+    font-weight: 500;
+    color: #2d3748;
+    letter-spacing: 0.2px;
+}
+
+.dropdownItem.active .dropdownItemLabel {
+    color: #667eea;
+    font-weight: 600;
+}
+
+/* 选中图标 */
+.checkIcon {
+    color: #667eea;
+    flex-shrink: 0;
+    animation: checkIconFadeIn 0.2s ease;
+}
+
+@keyframes checkIconFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .navigationBar {
+        padding: 12px 16px;
+    }
+
+    .pageTitle {
+        font-size: 20px;
+    }
+
+    .roleContainer {
+        padding: 6px 12px;
+        gap: 8px;
+    }
+
+    .roleLabel {
+        font-size: 12px;
+    }
+
+    .roleName {
+        font-size: 13px;
+    }
+
+    .dropdown {
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navigationBar {
+        padding: 10px 12px;
+    }
+
+    .pageTitle {
+        font-size: 18px;
+    }
+
+    .roleLabel {
+        display: none;
+        /* 在小屏幕上隐藏"角色"文字 */
+    }
+
+    .roleContainer {
+        padding: 4px 8px;
+    }
+}
