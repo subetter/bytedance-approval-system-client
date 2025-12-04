@@ -27,7 +27,6 @@ export const useUserRoleStore = create<UserRoleState>(set => ({
     // 设置当前角色
     setCurrentRole: role => {
         set({ currentRole: role });
-        console.log('角色切换为:', role === UserRole.APPLICANT ? '申请人' : '审批人');
     },
 
     // 设置当前用户
@@ -38,6 +37,5 @@ export const useUserRoleStore = create<UserRoleState>(set => ({
     // 切换角色（带日志）
     switchRole: role => {
         set({ currentRole: role });
-        console.log('角色切换为:', role === UserRole.APPLICANT ? '申请人' : '审批人');
     },
 }));

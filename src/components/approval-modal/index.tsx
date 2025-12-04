@@ -124,7 +124,6 @@ export default function ApprovalModal({
   const handleSubmit = async () => {
     try {
       const values = await form.validate();
-      console.log('----values:------', values);
 
       // 提取部门ID (Cascader 返回的是数组，取最后一个)
       const departmentIdVal = values.departmentId;
@@ -152,7 +151,6 @@ export default function ApprovalModal({
         await createApproval(payload);
         showMessage?.('success', '审批单创建成功！');
       } else if (mode === 'edit' && record) {
-        console.log('-=============values:==========', values);
         const payload = {
           ...values,
           departmentId,
@@ -170,7 +168,6 @@ export default function ApprovalModal({
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error('操作失败:', error);
       showMessage?.('error', '操作失败');
     }
   };

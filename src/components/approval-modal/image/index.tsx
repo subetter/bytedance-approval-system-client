@@ -1,18 +1,20 @@
 import React from 'react';
 import { Upload, Message } from '@arco-design/web-react';
 import { deleteAttachment } from '@/api/attachment'; // 假设这是附件删除接口
+import { MessageType } from '@/components/global-message';
 
 interface ImageUploadProps {
     value?: any[];
     onChange?: (fileList: any[]) => void; // 移除 file 参数，只传递 fileList
     formId?: number; // formId 可能为 number (edit) 或 undefined (create)
+    showMessage?: (type: MessageType, content: string, duration?: number) => void;
 }
 
 // 辅助函数：将 fileList 转换为纯粹的 ID 列表，用于 Form 状态管理
 // ⚠️ 注意：这个函数应该在父组件 ApprovalModal 中，用于 normalize 表单值。
 // 但为了演示，我们假设 onChange 期待的是 fileList。
 
-export default function ImageUpload({ value, onChange, formId }: ImageUploadProps) {
+export default function ImageUpload({ value, onChange, formId, showMessage }: ImageUploadProps) {
 
     // 附件上传接口，在新建模式下 formId 为 undefined
     // Koa 后端接口 uploadAttachment 会处理 formId 为 NULL 的情况
@@ -24,8 +26,6 @@ export default function ImageUpload({ value, onChange, formId }: ImageUploadProp
 
 
     const handleDelete = (file: any) => {
-        console.log('触发删除，文件信息:', file);
-
         // 只有当 formId 存在且文件是已完成状态时，才调用后端删除接口
         // 如果是新建模式 (formId 不存在)，则不调用后端删除，只在前端列表移除
         if (formId && file.status === 'done' && file.response?.id) {
@@ -33,10 +33,10 @@ export default function ImageUpload({ value, onChange, formId }: ImageUploadProp
             const attachmentId = file.response.id || file.uid;
 
             deleteAttachment(formId, attachmentId).then(() => {
-                Message.success('附件记录删除成功');
+                showMessage?.('success', '附件记录删除成功');
             }).catch((err: any) => {
                 // 如果删除失败，可能需要阻止文件从列表中移除
-                Message.error('删除附件失败');
+                showMessage?.('error', '删除附件失败');
                 console.error('删除附件失败:', err);
                 // 返回 false 阻止 Upload 默认移除行为，让用户重试
                 return false;
@@ -49,11 +49,6 @@ export default function ImageUpload({ value, onChange, formId }: ImageUploadProp
 
     // Upload 组件的 onChange 处理器
     const handleChange = (fileList: any[], file: any) => {
-        console.log('====handleChange:====');
-        console.log('====上传状态变化:====', file.status);
-        console.log('====上传状态变化:fileList  ====', fileList);
-        console.log('=====file====', file);
-
         // 核心修复：处理上传成功逻辑，更新文件对象的 uid 和 url
         if (file.status === 'done' && file.response?.data) {
             const { id, fileUrl } = file.response.data; // 假设后端返回 { data: { id, fileUrl, ... } }

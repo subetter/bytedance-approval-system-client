@@ -144,9 +144,6 @@ export const useApprovalStore = create<ApprovalState>((set, get) => ({
                 ...queryParams,
                 ...params,
             };
-
-            console.log('发起API请求，参数:', requestParams);
-
             const response = await fetchApprovals(requestParams);
             if (response.data) {
                 // 后端返回的数据结构包含 list 和 total

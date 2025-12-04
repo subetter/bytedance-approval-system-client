@@ -114,11 +114,6 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
             }
         });
 
-        // 兼容旧的 keyword (projectName) 如果 schema 里有 projectName，上面已经处理了
-        // 如果 schema 没有 projectName，这里可能需要保留？
-        // 现在的 schema 有 projectName。
-
-        console.log('查询参数:', queryParams);
         onSearch(queryParams);
     };
 

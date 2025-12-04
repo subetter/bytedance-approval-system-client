@@ -45,14 +45,12 @@ export default function Home() {
 
   // 处理查询
   const handleSearch = (params: ApprovalFormQueryParams) => {
-    console.log('查询参数:', params);
     setQueryParams(params);
     fetchApprovalList(params);
   };
 
   // 处理重置
   const handleReset = () => {
-    console.log('重置筛选条件');
     resetQueryParams();
     fetchApprovalList();
   };
@@ -66,14 +64,12 @@ export default function Home() {
 
   // 处理查看审批单
   const handleViewApproval = (record: ApprovalForm) => {
-    console.log('查看审批单详情: ----record------', record);
     setSelectedRecord(record);
     setDrawerVisible(true);
   };
 
   // 处理修改审批单
   const handleEditApproval = (record: ApprovalForm) => {
-    console.log('修改审批单: ----record------', record);
     setModalMode('edit');
     setSelectedRecord(record);
     setModalVisible(true);
@@ -129,7 +125,6 @@ export default function Home() {
 
     try {
       if (actionType === 'approve') {
-        console.log('审批通过:', actionRecord.id);
         await approveApproval(actionRecord.id, currentRole);
         showMessage('success', '审批已通过');
       } else if (actionType === 'reject') {
@@ -142,7 +137,6 @@ export default function Home() {
       fetchApprovalList();
       handleCloseConfirm();
     } catch (error) {
-      console.error('操作失败:', error);
       showMessage('error', '操作失败');
     }
   };
