@@ -1,7 +1,12 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
     "afterFiles": [],
-    "beforeFiles": [],
+    "beforeFiles": [
+      {
+        "source": "/bytedance-approval-system-client//_next/:path+",
+        "destination": "/bytedance-approval-system-client/_next/:path+"
+      }
+    ],
     "fallback": []
   },
   "sortedPages": [
