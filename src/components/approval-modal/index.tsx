@@ -1,8 +1,6 @@
 'use client';
 import dayjs from 'dayjs';
 
-import * as XLSX from 'xlsx';
-
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, DatePicker, Cascader, Button } from '@arco-design/web-react';
 import { MessageType } from '@/components/global-message';
@@ -28,6 +26,20 @@ interface ApprovalModalProps {
   onSuccess?: () => void;
   showMessage?: (type: MessageType, content: string, duration?: number) => void;
 }
+
+// 辅助函数：从上传组件的 fileList 中提取附件 ID 列表
+const extractAttachmentIds = (fileList: any[] = []): (number | string)[] => {
+  // 假设 fileList 可能是 AntD/Arco Upload 的文件对象数组
+  return fileList
+    .filter(file => file.status === 'done' || file.status === 'ready') // 只处理已完成或准备好的文件
+    .map(file => {
+      // 新上传的文件ID来自 response，已存在的文件ID来自 uid
+      // 确保这里的 ID 是数字或字符串，与数据库 BIGINT 兼容
+      return file.response?.data?.id || file.uid;
+    })
+    .filter(id => id); // 过滤掉无效的 ID
+};
+
 
 export default function ApprovalModal({
   visible,
@@ -58,9 +70,6 @@ export default function ApprovalModal({
     }
   };
 
-  // 是否只读模式
-  const isReadOnly = mode === 'view';
-
   // 当弹窗打开时，确保部门选项已加载
   useEffect(() => {
     if (visible) {
@@ -85,6 +94,15 @@ export default function ApprovalModal({
         departmentPathIds = [record.departmentId];
       }
 
+      // 附件初始化：将附件 ID 列表转换为 Upload 组件所需的结构
+      // 注意：ImageUpload 组件通常使用 fileList 属性，而不是直接使用 images
+      const imageFileList = record.attachments?.map((att: any) => ({
+        uid: String(att.id),
+        name: att.fileName || att.file_name,
+        url: att.fileUrl || att.file_url,
+        status: 'done', // Mark as uploaded
+      })) || [];
+
       form.setFieldsValue({
         projectName: record.projectName,
         content: record.content,
@@ -92,18 +110,12 @@ export default function ApprovalModal({
         // Convert string date to dayjs for DatePicker
         executeDate: record.executeDate ? dayjs(record.executeDate) : undefined,
         approvalAt: record.approvalAt ? dayjs(record.approvalAt) : undefined,
-        // Initialize images if record has them
-        // Map attachments to Upload file objects
-        images: record.attachments?.map((att: any) => ({
-          uid: String(att.id),
-          name: att.fileName || att.file_name,
-          url: att.fileUrl || att.file_url,
-          status: 'done', // Mark as uploaded
-        })) || [],
+        // 初始化 images 字段，使用 Upload 组件所需的 fileList 结构
+        images: imageFileList,
       });
     } else if (visible && mode === 'create') {
       form.resetFields();
-      // Explicitly reset images to ensure Upload component is cleared
+      // 确保 images 字段被重置
       form.setFieldValue('images', []);
     }
   }, [visible, record, mode, form, departmentOptions]);
@@ -115,7 +127,6 @@ export default function ApprovalModal({
       console.log('----values:------', values);
 
       // 提取部门ID (Cascader 返回的是数组，取最后一个)
-      // Schema field is departmentId, so values.departmentId will be the array from Cascader
       const departmentIdVal = values.departmentId;
       const departmentId = Array.isArray(departmentIdVal)
         ? departmentIdVal[departmentIdVal.length - 1]
@@ -125,8 +136,8 @@ export default function ApprovalModal({
       const executeDate = values.executeDate ? dayjs(values.executeDate).format('YYYY-MM-DD') : undefined;
       const approvalAt = values.approvalAt ? dayjs(values.approvalAt).format('YYYY-MM-DD HH:mm:ss') : undefined;
 
-      // 处理图片上传
-      const images = values.images;
+      // 核心修改：从 Upload 组件返回的 fileList 中提取附件 ID 列表
+      const attachmentIds = extractAttachmentIds(values.images);
 
       if (mode === 'create') {
         const payload = {
@@ -135,12 +146,9 @@ export default function ApprovalModal({
           executeDate,
           approvalAt,
           applicantId: currentUser?.id || 1,
-          images,
+          attachmentIds: attachmentIds, // 使用提取出的 ID 列表
         };
-        // No need to delete department if we use departmentId directly, but values might contain array
-        // We override departmentId with the single ID
 
-        console.log('payload to submit:', payload);
         await createApproval(payload);
         showMessage?.('success', '审批单创建成功！');
       } else if (mode === 'edit' && record) {
@@ -150,7 +158,7 @@ export default function ApprovalModal({
           departmentId,
           executeDate,
           approvalAt,
-          images,
+          attachmentIds: attachmentIds, // 使用提取出的 ID 列表
         };
 
         await updateApproval(record.id, payload);
@@ -175,6 +183,11 @@ export default function ApprovalModal({
     }
     if (validator?.maxCount) {
       rules.push({ maxLength: validator.maxCount, message: `${name}不能超过${validator.maxCount}个字符` });
+    }
+
+    // 特殊处理图片附件，不使用动态渲染，而使用下面的硬编码 FormItem
+    if (fieldName === 'images' || fieldName === 'imageAttachments') {
+      return null;
     }
 
     let formComponent;
@@ -223,15 +236,11 @@ export default function ApprovalModal({
     );
   };
 
-
-
   // 处理取消
   const handleCancel = () => {
     form.resetFields();
     onClose();
   };
-
-
 
   return (
     <Modal
@@ -251,17 +260,29 @@ export default function ApprovalModal({
     >
       <Form form={form} layout="vertical" autoComplete="off">
         {formSchema.length > 0 ? (
-          formSchema.filter(field => field.field !== 'approvalAt').map(renderFormItem)
+          // 过滤掉 images，因为我们单独处理
+          formSchema.filter(field => field.field !== 'approvalAt' && field.field !== 'imageAttachments').map(renderFormItem)
         ) : (
           // Fallback or loading state if schema is not loaded yet
           <div style={{ textAlign: 'center', padding: 20 }}>加载表单配置中...</div>
         )}
 
         <FormItem
-          label="附件上传"
-          field="images"
+          label={
+            <span >
+              图片附件
+              <span className={styles.labelHint}>
+                （单文件不超过10M，最多上传3张）
+              </span>
+            </span>
+          }
+          field="images" // 字段名改为 images
         >
+
+          {/* 附件上传组件 */}
           <ImageUpload formId={record?.id} />
+
+
         </FormItem>
 
 
