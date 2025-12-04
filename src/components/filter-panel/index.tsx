@@ -180,11 +180,19 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
                                         style={{ width: '100%' }}
                                     />
                                 );
-                            } else if (field.component === 'DateTimePicker' || field.component === 'DatePicker') {
+                            } else if (field.component === 'DateTimePicker') {
                                 component = (
                                     <RangePicker
                                         showTime
                                         format="YYYY-MM-DD HH:mm:ss"
+                                        style={{ width: '100%' }}
+                                        placeholder={['开始时间', '结束时间']}
+                                    />
+                                );
+                            } else if (field.component === 'DatePicker') {
+                                component = (
+                                    <RangePicker
+                                        format="YYYY-MM-DD"
                                         style={{ width: '100%' }}
                                         placeholder={['开始时间', '结束时间']}
                                     />

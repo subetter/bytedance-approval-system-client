@@ -217,8 +217,10 @@ export default function ApprovalModal({
         );
         break;
       case 'DateTimePicker':
-      case 'DatePicker':
         formComponent = <DatePicker style={{ width: '100%' }} placeholder="请选择日期时间" showTime format="YYYY-MM-DD HH:mm:ss" />;
+        break;
+      case 'DatePicker':
+        formComponent = <DatePicker style={{ width: '100%' }} placeholder="请选择日期" format="YYYY-MM-DD" />;
         break;
       default:
         formComponent = <Input />;
