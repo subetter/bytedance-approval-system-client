@@ -1,4 +1,4 @@
 1:"$Sreact.fragment"
 2:I[39756,["/bytedance-approval-system-client/_next/static/chunks/a24394cf8784f252.js"],"default"]
 3:I[37457,["/bytedance-approval-system-client/_next/static/chunks/a24394cf8784f252.js"],"default"]
-0:{"buildId":"r12funtvGdWotHgQ61UIn","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"Yhgf-w_y_x_7Ay_MAtR9z","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}
