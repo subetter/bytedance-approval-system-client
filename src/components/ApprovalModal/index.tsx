@@ -2,7 +2,7 @@
 import dayjs from 'dayjs';
 
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, DatePicker, Cascader, Button } from '@arco-design/web-react';
+import { Modal, Form, Button } from '@arco-design/web-react';
 import { MessageType } from '@/components/GlobalMessage';
 import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
@@ -11,16 +11,17 @@ import { getDepartmentIdPath } from '@/utils/convert';
 import { createApproval, updateApproval } from '@/api/approval';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { FormField } from '@/types/form';
+import { getModalTitle, getSubmitButtonText, ModalMode } from './modalUtils';
+import { renderFormComponent, generateFormRules } from './formUtils';
 
 import ImageUpload from './ImageUpload';
 
 
 const FormItem = Form.Item;
-const TextArea = Input.TextArea;
 
 interface ApprovalModalProps {
   visible: boolean;
-  mode: 'create' | 'edit' | 'view';
+  mode: ModalMode;
   record?: ApprovalForm;
   onClose: () => void;
   onSuccess?: () => void;
@@ -56,19 +57,6 @@ export default function ApprovalModal({
   // 从 Store 获取部门数据
   const { departmentOptions, fetchDepartmentOptions, formSchema } = useApprovalStore();
 
-  // 获取弹窗标题
-  const getTitle = () => {
-    switch (mode) {
-      case 'create':
-        return '新建审批单';
-      case 'edit':
-        return '审批单修改';
-      case 'view':
-        return '审批单详情';
-      default:
-        return '审批单';
-    }
-  };
 
   // 当弹窗打开时，确保部门选项已加载
   useEffect(() => {
@@ -173,55 +161,15 @@ export default function ApprovalModal({
   };
 
   const renderFormItem = (field: FormField) => {
-    const { field: fieldName, name, component, validator } = field;
-    const rules = [];
-    if (validator?.required) {
-      rules.push({ required: true, message: `请输入${name}` });
-    }
-    if (validator?.maxCount) {
-      rules.push({ maxLength: validator.maxCount, message: `${name}不能超过${validator.maxCount}个字符` });
-    }
+    const { field: fieldName, name } = field;
 
     // 特殊处理图片附件，不使用动态渲染，而使用下面的硬编码 FormItem
     if (fieldName === 'images' || fieldName === 'imageAttachments') {
       return null;
     }
 
-    let formComponent;
-    switch (component) {
-      case 'Input':
-        formComponent = <Input placeholder={`请输入${name}`} maxLength={validator?.maxCount} showWordLimit={!!validator?.maxCount} />;
-        break;
-      case 'Textarea':
-        formComponent = (
-          <TextArea
-            placeholder={`请输入${name}`}
-            maxLength={validator?.maxCount}
-            showWordLimit={!!validator?.maxCount}
-            autoSize={{ minRows: 4, maxRows: 8 }}
-          />
-        );
-        break;
-      case 'DepartmentSelect':
-      case 'Cascader':
-        formComponent = (
-          <Cascader
-            placeholder="请选择部门"
-            options={departmentOptions}
-            showSearch
-            allowClear
-          />
-        );
-        break;
-      case 'DateTimePicker':
-        formComponent = <DatePicker style={{ width: '100%' }} placeholder="请选择日期时间" showTime format="YYYY-MM-DD HH:mm:ss" />;
-        break;
-      case 'DatePicker':
-        formComponent = <DatePicker style={{ width: '100%' }} placeholder="请选择日期" format="YYYY-MM-DD" />;
-        break;
-      default:
-        formComponent = <Input />;
-    }
+    const rules = generateFormRules(field);
+    const formComponent = renderFormComponent(field, departmentOptions);
 
     return (
       <FormItem
@@ -243,14 +191,14 @@ export default function ApprovalModal({
 
   return (
     <Modal
-      title={getTitle()}
+      title={getModalTitle(mode)}
       visible={visible}
       onCancel={handleCancel}
       footer={
         <>
           <Button onClick={handleCancel}>取消</Button>
           <Button type="primary" onClick={handleSubmit}>
-            {mode === 'create' ? '提交' : '保存'}
+            {getSubmitButtonText(mode)}
           </Button>
         </>
       }

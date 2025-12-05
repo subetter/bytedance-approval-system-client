@@ -16,6 +16,8 @@ import styles from './index.module.css';
 import { useApprovalStore } from '@/store';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { UserRole } from '@/types/enum';
+import { processFormFieldValue } from './utils';
+import { renderFilterComponent } from './filterComponentUtils';
 
 
 const { Row, Col } = Grid;
@@ -78,38 +80,7 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
         formSchema.forEach(field => {
             const value = values[field.field];
             if (value) {
-                if (field.component === 'DepartmentSelect' || field.component === 'Cascader') {
-                    // 部门取最后一个ID
-                    queryParams.departmentId = Array.isArray(value) ? value[value.length - 1] : value;
-                } else if (field.component === 'DateTimePicker' || field.component === 'DatePicker') {
-                    // 时间范围
-                    // 假设 filter 中命名为 fieldName + 'Range' (e.g. approvalAtRange)
-                    // 或者直接用 fieldName 作为 range 数组
-                    // 这里我们在 render 时会用 field.field 作为 name，所以 value 就是数组
-                    if (Array.isArray(value)) {
-                        // 特殊处理：如果是 approvalAt，映射到 api 的 approvalTimeStart/End
-                        if (field.field === 'approvalAt') {
-                            queryParams.approvalTimeStart = value[0];
-                            queryParams.approvalTimeEnd = value[1];
-                        } else if (field.field === 'createdAt') {
-                            queryParams.createTimeStart = value[0];
-                            queryParams.createTimeEnd = value[1];
-                        } else if (field.field === 'executeDate') {
-                            // 假设后端支持 executeDateStart/End，或者精确匹配
-                            // 这里假设是范围搜索
-                            // 如果后端没有对应字段，可能需要调整。
-                            // 暂时假设后端支持 executeDateStart/End
-                            // @ts-ignore
-                            queryParams.executeDateStart = value[0];
-                            // @ts-ignore
-                            queryParams.executeDateEnd = value[1];
-                        }
-                    }
-                } else if (field.component === 'Input' || field.component === 'Textarea') {
-                    // 文本搜索
-                    // @ts-ignore
-                    queryParams[field.field] = value;
-                }
+                processFormFieldValue(field, value, queryParams);
             }
         });
 
@@ -161,40 +132,11 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
 
                             if (collapsed && index >= 2) return null;
 
-                            let component = null;
-                            if (field.component === 'Input' || field.component === 'Textarea') {
-                                component = <Input placeholder={`请输入${field.name}`} allowClear onPressEnter={handleSearch} />;
-                            } else if (field.component === 'DepartmentSelect' || field.component === 'Cascader') {
-                                component = (
-                                    <Cascader
-                                        placeholder={`请选择${field.name}`}
-                                        options={departmentOptions}
-                                        showSearch
-                                        allowClear
-                                        style={{ width: '100%' }}
-                                    />
-                                );
-                            } else if (field.component === 'DateTimePicker') {
-                                component = (
-                                    <RangePicker
-                                        showTime
-                                        format="YYYY-MM-DD HH:mm:ss"
-                                        style={{ width: '100%' }}
-                                        placeholder={['开始时间', '结束时间']}
-                                    />
-                                );
-                            } else if (field.component === 'DatePicker') {
-                                component = (
-                                    <RangePicker
-                                        format="YYYY-MM-DD"
-                                        style={{ width: '100%' }}
-                                        placeholder={['开始时间', '结束时间']}
-                                    />
-                                );
-                            }
-
                             // 如果是 content，可能不需要在筛选里显示
                             if (field.field === 'content') return null;
+
+                            const component = renderFilterComponent(field, departmentOptions, handleSearch);
+                            if (!component) return null;
 
                             return (
                                 <Col span={8} key={field.field}>

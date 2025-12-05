@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button, Modal, Space, Message } from '@arco-design/web-react';
+import { useState } from 'react';
+import { Button, Modal } from '@arco-design/web-react';
 import ExcelImport from '@/components/ExcelImport';
 import GlobalMessage, { MessageType } from '@/components/GlobalMessage';
 import NavigationBar from '@/components/NavgationBar';
@@ -14,8 +14,9 @@ import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
 import { useUserRoleStore, useApprovalStore } from '@/store';
-import { approveApproval, rejectApproval, withdrawApproval } from '@/api/approval';
 import styles from './page.module.css';
+import { getApprovalActionTitle, getApprovalActionText, ApprovalActionType } from '@/utils/approvalUtils';
+import { executeApprovalAction, getApprovalActionSuccessMessage } from '@/utils/approvalActionUtils';
 
 export default function Home() {
   // 使用 Zustand store
@@ -83,7 +84,7 @@ export default function Home() {
 
   // 确认弹窗状态
   const [actionRecord, setActionRecord] = useState<ApprovalForm | null>(null);
-  const [actionType, setActionType] = useState<'approve' | 'reject' | 'withdraw' | null>(null);
+  const [actionType, setActionType] = useState<ApprovalActionType | null>(null);
 
   // 关闭弹窗
   const handleCloseModal = () => {
@@ -118,25 +119,14 @@ export default function Home() {
     setActionRecord(record);
     setActionType('reject');
   };
-  useEffect(() => {
-    Message.info('aaa');
-  }, [])
 
   // 执行确认操作
   const handleConfirmAction = async () => {
     if (!actionRecord || !actionType) return;
 
     try {
-      if (actionType === 'approve') {
-        await approveApproval(actionRecord.id, currentRole);
-        showMessage('success', '审批已通过');
-      } else if (actionType === 'reject') {
-        await rejectApproval(actionRecord.id, currentRole);
-        showMessage('success', '审批已驳回');
-      } else if (actionType === 'withdraw') {
-        await withdrawApproval(actionRecord.id);
-        showMessage('success', '审批单已撤回');
-      }
+      await executeApprovalAction(actionType, actionRecord, currentRole);
+      showMessage('success', getApprovalActionSuccessMessage(actionType));
       fetchApprovalList();
       handleCloseConfirm();
     } catch (error) {
@@ -228,7 +218,7 @@ export default function Home() {
 
       {/* 确认操作弹窗 */}
       <Modal
-        title={actionType === 'approve' ? '确认通过' : actionType === 'reject' ? '确认驳回' : '确认撤回'}
+        title={getApprovalActionTitle(actionType)}
         visible={!!actionRecord}
         onOk={handleConfirmAction}
         onCancel={handleCloseConfirm}
@@ -237,7 +227,7 @@ export default function Home() {
       >
         {actionRecord && (
           <p>
-            确定要{actionType === 'approve' ? '通过' : actionType === 'reject' ? '驳回' : '撤回'}
+            确定要{getApprovalActionText(actionType)}
             "{actionRecord.projectName}" 的审批申请吗？
           </p>
         )}

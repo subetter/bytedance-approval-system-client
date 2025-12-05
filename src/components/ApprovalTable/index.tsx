@@ -6,12 +6,11 @@ import { ApprovalStatus } from '@/types/enum';
 import { ApprovalStatusText } from '@/types/approval';
 import { useApprovalStore } from '@/store';
 import styles from './index.module.css';
-import { getDepartmentPath } from '@/utils/convert';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { UserRole } from '@/types/enum';
 import { IconCheck, IconClose } from '@arco-design/web-react/icon';
-import dayjs from 'dayjs';
-import { FormField } from '@/types/form';
+import { getStatusColor } from '../../utils/approvalUtils';
+import { generateTableColumn } from './utils';
 
 interface ApprovalTableProps {
     onView?: (record: ApprovalForm) => void;
@@ -47,19 +46,6 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject, onW
         }
     }, [fetchApprovalList, fetchDepartmentOptions, fetchFormSchema]);
 
-    // 获取审批状态标签颜色
-    const getStatusColor = (status: ApprovalStatus) => {
-        switch (status) {
-            case ApprovalStatus.PENDING:
-                return 'orange';
-            case ApprovalStatus.APPROVED:
-                return 'green';
-            case ApprovalStatus.REJECTED:
-                return 'red';
-            default:
-                return 'gray';
-        }
-    };
 
     // 处理分页变化
     const handlePageChange = (page: number, pageSize: number) => {
@@ -104,46 +90,15 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject, onW
 
         // 2. 动态列 (中间)
         const dynamicColumns: TableColumnProps<ApprovalForm>[] = formSchema.map(field => {
-            const col: TableColumnProps<ApprovalForm> = {
-                title: field.name,
-                dataIndex: field.field as keyof ApprovalForm,
-                width: 200,
-            };
+            const col = generateTableColumn(field, departmentPathMap);
 
-            // 特殊字段渲染处理
-            if (field.field === 'departmentId') {
-                col.render = (departmentId: number, record: ApprovalForm) => {
-                    // 1. 优先显示后端直接返回的完整路径
-                    if (record.departmentPath) {
-                        return record.departmentPath;
-                    }
-                    // 2. 其次尝试使用 departmentPathMap 查找
-                    if (departmentPathMap.size > 0 && departmentId) {
-                        const path = getDepartmentPath(departmentPathMap, departmentId);
-                        if (path) return path;
-                    }
-                    // 3. 降级显示后端返回的名称或 '--'
-                    return record.departmentName || '--';
-                };
-            } else if (field.field === 'executeDate') {
-                col.render = (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '--';
-            } else if (field.field === 'approvalAt') {
-                col.render = (date: string) => date ? dayjs(date).format('YYYY-MM-DD HH:mm:ss') : '--';
-            } else if (field.field === 'projectName') {
-                col.width = 250;
-                col.ellipsis = true;
-                col.render = (projectName: string, record: ApprovalForm) => (
+            // 特殊处理：项目名称需要自定义渲染
+            if (field.field === 'projectName') {
+                col.render = (projectName: string) => (
                     <div className={styles.projectCell}>
                         <div className={styles.projectName}>{projectName}</div>
                     </div>
                 );
-            } else if (field.field === 'content') {
-                col.width = 300;
-                col.ellipsis = true;
-            } else if (field.field === 'createdAt') {
-                col.width = 180;
-                col.render = (createdAt?: string) => createdAt ? dayjs(createdAt).format('YYYY-MM-DD HH:mm:ss') : '--';
-                col.sorter = (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
             }
 
             return col;
