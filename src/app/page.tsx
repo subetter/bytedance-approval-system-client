@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, Modal, Space } from '@arco-design/web-react';
-import ExcelImport from '@/components/excel-import';
-import GlobalMessage, { MessageType } from '@/components/global-message';
-import NavigationBar from '@/components/navgation-bar';
-import FilterPanel from '@/components/filter-panel';
-import ApprovalTable from '@/components/approval-table';
-import ApprovalModal from '@/components/approval-modal';
-import ApprovalDrawer from '@/components/approval-drawer';
-import SchemaConfig from '@/components/schema-config';
+import { useState, useEffect } from 'react';
+import { Button, Modal, Space, Message } from '@arco-design/web-react';
+import ExcelImport from '@/components/ExcelImport';
+import GlobalMessage, { MessageType } from '@/components/GlobalMessage';
+import NavigationBar from '@/components/NavgationBar';
+import FilterPanel from '@/components/FilterPanel';
+import ApprovalTable from '@/components/ApprovalTable';
+import ApprovalModal from '@/components/ApprovalModal';
+import ApprovalDrawer from '@/components/ApprovalDrawer';
+import SchemaConfig from '@/components/SchemaConfig';
 import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
@@ -118,6 +118,9 @@ export default function Home() {
     setActionRecord(record);
     setActionType('reject');
   };
+  useEffect(() => {
+    Message.info('aaa');
+  }, [])
 
   // 执行确认操作
   const handleConfirmAction = async () => {

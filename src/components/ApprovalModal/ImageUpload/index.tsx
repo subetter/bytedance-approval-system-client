@@ -1,7 +1,7 @@
 import React from 'react';
 import { Upload, Message } from '@arco-design/web-react';
 import { deleteAttachment } from '@/api/attachment'; // 假设这是附件删除接口
-import { MessageType } from '@/components/global-message';
+import { MessageType } from '@/components/GlobalMessage';
 
 interface ImageUploadProps {
     value?: any[];

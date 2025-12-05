@@ -3,16 +3,16 @@ import dayjs from 'dayjs';
 
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, DatePicker, Cascader, Button } from '@arco-design/web-react';
-import { MessageType } from '@/components/global-message';
+import { MessageType } from '@/components/GlobalMessage';
 import { ApprovalForm } from '@/types/approval';
 import { useApprovalStore } from '@/store';
-import styles from './approval-modal.module.css';
+import styles from './index.module.css';
 import { getDepartmentIdPath } from '@/utils/convert';
 import { createApproval, updateApproval } from '@/api/approval';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { FormField } from '@/types/form';
 
-import ImageUpload from './image';
+import ImageUpload from './ImageUpload';
 
 
 const FormItem = Form.Item;

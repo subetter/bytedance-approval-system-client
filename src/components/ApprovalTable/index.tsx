@@ -5,7 +5,7 @@ import { ApprovalForm } from '@/types/approval';
 import { ApprovalStatus } from '@/types/enum';
 import { ApprovalStatusText } from '@/types/approval';
 import { useApprovalStore } from '@/store';
-import styles from './approval-table.module.css';
+import styles from './index.module.css';
 import { getDepartmentPath } from '@/utils/convert';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { UserRole } from '@/types/enum';
@@ -135,13 +135,6 @@ export default function ApprovalTable({ onView, onEdit, onApprove, onReject, onW
                 col.render = (projectName: string, record: ApprovalForm) => (
                     <div className={styles.projectCell}>
                         <div className={styles.projectName}>{projectName}</div>
-                        {/* 如果 content 也在 schema 中，它会有自己的列，这里是否还需要显示 content？
-                            原设计是 projectName 和 content 在一列显示。
-                            如果完全动态化，应该分开显示。但为了保持原样，如果 schema 有 content，
-                            我们可以选择不渲染 content 列，而是合并到 projectName，或者分开。
-                            这里假设 schema 定义了什么就显示什么列。
-                            如果 schema 同时有 projectName 和 content，它们会变成两列。
-                         */}
                     </div>
                 );
             } else if (field.field === 'content') {

@@ -1,8 +1,7 @@
-import React from 'react';
 import { Dropdown, Menu, Tag } from '@arco-design/web-react';
 import { IconDown, IconCheck } from '@arco-design/web-react/icon';
 import { UserRole } from '@/types/enum';
-import styles from './navigation-bar.module.css';
+import styles from './index.module.css';
 
 const MenuItem = Menu.Item;
 

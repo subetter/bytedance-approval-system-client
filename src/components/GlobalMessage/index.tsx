@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Alert, Spin } from '@arco-design/web-react';
-import styles from './style.module.css';
+import styles from './index.module.css';
 
 export type MessageType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 

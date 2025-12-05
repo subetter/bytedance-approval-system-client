@@ -12,10 +12,9 @@ import {
 import { IconDown, IconUp } from '@arco-design/web-react/icon';
 import { ApprovalStatus } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
-import styles from './filter-panel.module.css';
+import styles from './index.module.css';
 import { useApprovalStore } from '@/store';
 import { useUserRoleStore } from '@/store/useUserRoleStore';
-import { FormField } from '@/types/form';
 import { UserRole } from '@/types/enum';
 
 
