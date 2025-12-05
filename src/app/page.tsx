@@ -172,6 +172,9 @@ export default function Home() {
       />
       <main className={styles.main}>
         <div className={styles.content}>
+          {/* 表单配置 Tabs - 放在筛选区上方 */}
+          <SchemaConfig />
+
           <FilterPanel onSearch={handleSearch} onReset={handleReset} />
 
           {/* 新建按钮 - 仅申请人可见 */}
@@ -186,7 +189,6 @@ export default function Home() {
                 </>
               )}
             </div>
-            <SchemaConfig />
           </div>
 
           <ApprovalTable

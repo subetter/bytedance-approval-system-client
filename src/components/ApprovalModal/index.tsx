@@ -227,7 +227,7 @@ export default function ApprovalModal({
         >
 
           {/* 附件上传组件 */}
-          <ImageUpload formId={record?.id} />
+          <ImageUpload formId={record?.id} showMessage={showMessage} />
 
 
         </FormItem>

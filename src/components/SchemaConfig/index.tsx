@@ -1,38 +1,41 @@
-import React, { useState } from 'react';
-import { Modal, Select, Message } from '@arco-design/web-react';
+import React from 'react';
+import { Tabs } from '@arco-design/web-react';
 import { useApprovalStore } from '@/store';
+import styles from './index.module.css';
 
 interface SchemaConfigProps {
     className?: string;
 }
 
 const SCHEMA_OPTIONS = [
-    { label: '基础审批 (Basic Approval)', value: 'basic_approval' },
-    { label: '无时间版本 (No Time Version)', value: 'no_time_version_approval' },
-    { label: '极简审批 (Simple Approval)', value: 'simple_approval' },
+    { label: '基础审批', value: 'basic_approval' },
+    { label: '无时间版本', value: 'no_time_version_approval' },
+    { label: '极简审批', value: 'simple_approval' },
 ];
 
 export default function SchemaConfig({ className }: SchemaConfigProps) {
     const { fetchFormSchema, currentSchemaKey } = useApprovalStore();
 
-    const handleChange = async (value: string) => {
+    const handleTabChange = async (key: string) => {
         try {
-            await fetchFormSchema(value);
+            await fetchFormSchema(key);
         } catch (error) {
             console.error(error);
         }
     };
 
     return (
-        <div className={className} style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ marginRight: 8, whiteSpace: 'nowrap' }}>表单配置:</span>
-            <Select
-                value={currentSchemaKey}
-                onChange={handleChange}
-                placeholder="请选择配置 Key"
-                options={SCHEMA_OPTIONS}
-                style={{ width: 240 }}
-            />
+        <div className={`${styles.schemaConfigContainer} ${className || ''}`}>
+            <Tabs
+                activeTab={currentSchemaKey}
+                onChange={handleTabChange}
+                type="line"
+                size="large"
+            >
+                {SCHEMA_OPTIONS.map(option => (
+                    <Tabs.TabPane key={option.value} title={option.label} />
+                ))}
+            </Tabs>
         </div>
     );
 }

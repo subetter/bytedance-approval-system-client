@@ -47,6 +47,18 @@ export default function ImageUpload({ value, onChange, formId, showMessage }: Im
         return true;
     }
 
+    // 文件大小限制：10MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
+    // 上传前检查文件大小
+    const beforeUpload = (file: File): boolean | Promise<boolean> => {
+        if (file.size > MAX_FILE_SIZE) {
+            showMessage?.('error', `文件 "${file.name}" 超过10M，请选择较小的文件`);
+            return false; // 阻止上传
+        }
+        return true; // 允许上传
+    };
+
     // Upload 组件的 onChange 处理器
     const handleChange = (fileList: any[], file: any) => {
         // 核心修复：处理上传成功逻辑，更新文件对象的 uid 和 url
@@ -81,6 +93,7 @@ export default function ImageUpload({ value, onChange, formId, showMessage }: Im
         <Upload
             fileList={value}
             onChange={handleChange} // 使用我们定义的处理器
+            beforeUpload={beforeUpload} // 上传前检查文件大小
             multiple
             imagePreview
             limit={3}
