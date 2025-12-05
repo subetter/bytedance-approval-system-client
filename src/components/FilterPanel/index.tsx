@@ -18,6 +18,7 @@ import { useUserRoleStore } from '@/store/useUserRoleStore';
 import { UserRole } from '@/types/enum';
 import { processFormFieldValue } from './utils';
 import { renderFilterComponent } from './filterComponentUtils';
+import SchemaConfig from '@/components/SchemaConfig';
 
 
 const { Row, Col } = Grid;
@@ -102,6 +103,7 @@ export default function FilterPanel({ onSearch, onReset }: FilterPanelProps) {
         <div className={styles.filterPanel}>
             <div className={styles.filterHeader}>
                 <h3 className={styles.filterTitle}>筛选区</h3>
+                <SchemaConfig />
             </div>
 
             <div className={styles.filterContent}>

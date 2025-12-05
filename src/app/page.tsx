@@ -9,7 +9,7 @@ import FilterPanel from '@/components/FilterPanel';
 import ApprovalTable from '@/components/ApprovalTable';
 import ApprovalModal from '@/components/ApprovalModal';
 import ApprovalDrawer from '@/components/ApprovalDrawer';
-import SchemaConfig from '@/components/SchemaConfig';
+
 import { UserRole } from '@/types/enum';
 import { ApprovalFormQueryParams } from '@/types/api';
 import { ApprovalForm } from '@/types/approval';
@@ -172,8 +172,7 @@ export default function Home() {
       />
       <main className={styles.main}>
         <div className={styles.content}>
-          {/* 表单配置 Tabs - 放在筛选区上方 */}
-          <SchemaConfig />
+
 
           <FilterPanel onSearch={handleSearch} onReset={handleReset} />
 
